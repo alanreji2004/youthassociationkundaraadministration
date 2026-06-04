@@ -3,10 +3,9 @@ import { Link } from "react-router-dom";
 import { 
   FiUsers, 
   FiArrowRight, 
-  FiDollarSign, 
-  FiCalendar, 
-  FiActivity 
+  FiCalendar 
 } from "react-icons/fi";
+import { FaRupeeSign } from "react-icons/fa";
 import { memberService } from "../services/memberService";
 import styles from "./Dashboard.module.css";
 
@@ -73,10 +72,10 @@ const Dashboard = () => {
         <div className={`${styles.card} ${styles.cardLocked}`}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Financial Accounts</span>
-            <FiDollarSign className={styles.cardIcon} />
+            <FaRupeeSign className={styles.cardIcon} />
           </div>
           <div className={styles.cardBody}>
-            <span className={styles.cardValue}>$0.00</span>
+            <span className={styles.cardValue}>₹0.00</span>
             <span className={styles.cardDesc}>
               Income & Expense ledger tracking
             </span>
@@ -94,21 +93,6 @@ const Dashboard = () => {
             <span className={styles.cardValue}>0</span>
             <span className={styles.cardDesc}>
               Upcoming parish & youth events scheduled
-            </span>
-          </div>
-          <span className={styles.badge}>Coming Soon</span>
-        </div>
-
-        {/* Future Activity Logger */}
-        <div className={`${styles.card} ${styles.cardLocked}`}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>System Activity Log</span>
-            <FiActivity className={styles.cardIcon} />
-          </div>
-          <div className={styles.cardBody}>
-            <span className={styles.cardValue}>Idle</span>
-            <span className={styles.cardDesc}>
-              Real-time audit log of administrative actions
             </span>
           </div>
           <span className={styles.badge}>Coming Soon</span>
