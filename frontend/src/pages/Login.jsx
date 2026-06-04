@@ -56,7 +56,6 @@ const Login = () => {
       <div className={styles.card}>
         <div className={styles.header}>
           <div className={styles.logo} style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
-            <FiDatabase />
             <span>SMYA Portal</span>
           </div>
           <h1 className={styles.title}>Sign in</h1>
