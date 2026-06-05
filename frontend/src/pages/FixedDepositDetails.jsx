@@ -320,18 +320,22 @@ const FixedDepositDetails = () => {
       t.type,
       t.description,
       t.amount,
-      t.referenceNumber || "N/A",
+      (!t.referenceNumber || t.referenceNumber === "AUTO" || t.referenceNumber === "N/A") ? "—" : t.referenceNumber,
       t.createdBy
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(","), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `${fd.fdNumber}_Ledger.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     toast.success("CSV Statement downloaded.");
   };
 
@@ -620,7 +624,9 @@ const FixedDepositDetails = () => {
                         <td>{tx.description}</td>
                         <td style={{ textAlign: "right", fontWeight: 600 }}>{formatCurrency(tx.amount)}</td>
                         <td>
-                          <code className={styles.reference}>{tx.referenceNumber || "—"}</code>
+                          <code className={styles.reference}>
+                            {(!tx.referenceNumber || tx.referenceNumber === "AUTO" || tx.referenceNumber === "N/A") ? "—" : tx.referenceNumber}
+                          </code>
                         </td>
                         <td>{tx.createdBy}</td>
                       </tr>

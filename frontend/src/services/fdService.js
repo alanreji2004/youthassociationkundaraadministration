@@ -300,7 +300,7 @@ export const fdService = {
             type: "Deposit",
             description: "Initial principal investment amount",
             amount: parseFloat(fdData.principalAmount),
-            referenceNumber: "AUTO",
+            referenceNumber: "",
             createdBy: creator
           });
           saveLocalData(LOCAL_FD_TX_KEY, txs);
@@ -363,7 +363,7 @@ export const fdService = {
           type: "Deposit",
           description: "Initial principal investment amount",
           amount: parseFloat(fdData.principalAmount),
-          referenceNumber: "AUTO",
+          referenceNumber: "",
           createdBy: creator
         });
 
@@ -523,7 +523,7 @@ export const fdService = {
               type: "Renewal",
               description: `FD renewed in-place with new principal investment. Interest Rate: ${renewalData.interestRate}%`,
               amount: parseFloat(renewalData.principalAmount),
-              referenceNumber: "AUTO",
+              referenceNumber: "",
               createdBy: creator
             });
             saveLocalData(LOCAL_FD_TX_KEY, txs);
@@ -595,7 +595,7 @@ export const fdService = {
             type: "Renewal",
             description: `Renewed balance transferred to child account ${newFdNumber}`,
             amount: parseFloat(oldFd.maturityAmount),
-            referenceNumber: "AUTO",
+            referenceNumber: "",
             createdBy: creator
           });
           txs.push({
@@ -605,7 +605,7 @@ export const fdService = {
             type: "Renewal",
             description: `Balance transferred from parent account ${parentNumber}`,
             amount: parseFloat(renewalData.principalAmount),
-            referenceNumber: "AUTO",
+            referenceNumber: "",
             createdBy: creator
           });
           saveLocalData(LOCAL_FD_TX_KEY, txs);
@@ -678,7 +678,7 @@ export const fdService = {
             type: "Renewal",
             description: `FD renewed in-place with new principal investment. Interest Rate: ${renewalData.interestRate}%`,
             amount: parseFloat(renewalData.principalAmount),
-            referenceNumber: "AUTO",
+            referenceNumber: "",
             createdBy: creator
           });
 
@@ -743,7 +743,7 @@ export const fdService = {
           type: "Renewal",
           description: `Renewed balance transferred to child account ${newFdNumber}`,
           amount: parseFloat(parentData.maturityAmount),
-          referenceNumber: "AUTO",
+          referenceNumber: "",
           createdBy: creator
         });
 
@@ -754,7 +754,7 @@ export const fdService = {
           type: "Renewal",
           description: `Balance transferred from parent account ${parentNumber}`,
           amount: parseFloat(renewalData.principalAmount),
-          referenceNumber: "AUTO",
+          referenceNumber: "",
           createdBy: creator
         });
 
@@ -825,7 +825,7 @@ export const fdService = {
             type: "Closure",
             description: `Closure amount credited to savings account. Remarks: ${closureData.remarks || ""}`,
             amount: parseFloat(closureData.finalAmountReceived),
-            referenceNumber: "AUTO",
+            referenceNumber: "",
             createdBy: creator
           });
           saveLocalData(LOCAL_FD_TX_KEY, txs);
@@ -879,7 +879,7 @@ export const fdService = {
           type: "Closure",
           description: `Closure amount credited to savings account. Remarks: ${closureData.remarks || ""}`,
           amount: parseFloat(closureData.finalAmountReceived),
-          referenceNumber: "AUTO",
+          referenceNumber: "",
           createdBy: creator
         });
 
@@ -917,7 +917,7 @@ export const fdService = {
             type: txData.type,
             description: txData.description.trim(),
             amount: parseFloat(txData.amount),
-            referenceNumber: txData.referenceNumber ? txData.referenceNumber.trim() : "N/A",
+            referenceNumber: txData.referenceNumber ? txData.referenceNumber.trim() : "",
             createdBy: creator
           };
           list.push(item);
@@ -955,7 +955,7 @@ export const fdService = {
         type: txData.type,
         description: txData.description.trim(),
         amount: parseFloat(txData.amount),
-        referenceNumber: txData.referenceNumber ? txData.referenceNumber.trim() : "N/A",
+        referenceNumber: txData.referenceNumber ? txData.referenceNumber.trim() : "",
         createdBy: creator
       };
 

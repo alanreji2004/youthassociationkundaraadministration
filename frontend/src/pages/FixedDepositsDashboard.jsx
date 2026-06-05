@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   FiPlus, 
@@ -7,15 +7,18 @@ import {
   FiChevronRight, 
   FiArrowUp, 
   FiArrowDown,
-  FiSlash
+  FiSlash,
+  FiDownload
 } from "react-icons/fi";
 import { fdService } from "../services/fdService";
+import { useToast } from "../components/Toast";
 import styles from "./FixedDepositsDashboard.module.css";
 
 const ITEMS_PER_PAGE = 10;
 
 const FixedDepositsDashboard = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [fds, setFds] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -231,6 +234,33 @@ const FixedDepositsDashboard = () => {
     }).format(val);
   };
 
+  const handleExportCSV = () => {
+    if (sortedFds.length === 0) {
+      toast.info("No fixed deposits to export.");
+      return;
+    }
+    const headers = ["FD Number", "Principal Amount", "Maturity Date"];
+    const rows = sortedFds.map((fd) => [
+      fd.fdNumber || "",
+      fd.principalAmount || 0,
+      fd.maturityDate || ""
+    ]);
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((e) => e.map((val) => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Fixed_Deposits_List.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Fixed deposits exported successfully.");
+  };
+
   const getStatusClass = (fd) => {
     if (fd.status === "Closed") return styles.statusClosed;
     if (fd.status === "Renewed") return styles.statusRenewed;
@@ -261,6 +291,15 @@ const FixedDepositsDashboard = () => {
           </p>
         </div>
         <div className={styles.actionsArea}>
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            title="Export deposit registry to CSV"
+          >
+            <FiDownload />
+            <span>Export CSV</span>
+          </button>
           <Link to="/financial-accounts/fixed-deposits/new" className={`${styles.btn} ${styles.btnPrimary}`}>
             <FiPlus />
             <span>Add Fixed Deposit</span>
