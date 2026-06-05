@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./ConfirmationModal.module.css";
 
 const ConfirmationModal = ({
@@ -9,9 +9,18 @@ const ConfirmationModal = ({
   onCancel,
   confirmText = "Confirm",
   cancelText = "Cancel",
-  isDanger = false
+  isDanger = false,
+  showPasswordInput = false,
+  passwordPlaceholder = "Enter admin password"
 }) => {
   const modalRef = useRef(null);
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setPassword(""); // Reset password when modal opens
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -25,7 +34,6 @@ const ConfirmationModal = ({
       document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
       
-      // Auto-focus the modal container or confirmation button for screen readers
       if (modalRef.current) {
         modalRef.current.focus();
       }
@@ -42,6 +50,14 @@ const ConfirmationModal = ({
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onCancel();
+    }
+  };
+
+  const handleConfirmClick = () => {
+    if (showPasswordInput) {
+      onConfirm(password);
+    } else {
+      onConfirm();
     }
   };
 
@@ -67,6 +83,33 @@ const ConfirmationModal = ({
           <p id="modal-message" className={styles.message}>
             {message}
           </p>
+
+          {showPasswordInput && (
+            <div style={{ marginTop: "16px" }}>
+              <input
+                type="password"
+                placeholder={passwordPlaceholder}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  fontSize: "14px",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-color)",
+                  outline: "none",
+                  backgroundColor: "var(--bg-input)",
+                  transition: "border-color var(--transition-fast)"
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleConfirmClick();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+          )}
         </div>
         <div className={styles.actions}>
           <button
@@ -79,7 +122,8 @@ const ConfirmationModal = ({
           <button
             type="button"
             className={`${styles.btn} ${isDanger ? styles.btnDanger : styles.btnConfirm}`}
-            onClick={onConfirm}
+            onClick={handleConfirmClick}
+            disabled={showPasswordInput && !password.trim()}
           >
             {confirmText}
           </button>

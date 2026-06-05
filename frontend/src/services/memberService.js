@@ -9,7 +9,8 @@ import {
   getDocs,
   writeBatch
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { db, auth } from "./firebase";
 
 const isFirebaseConfigured = !!import.meta.env.VITE_FIREBASE_API_KEY;
 
@@ -363,6 +364,47 @@ export const memberService = {
     } catch (error) {
       console.error("Firestore reset error:", error);
       throw new Error(`Failed to wipe registry: ${error.message}`);
+    }
+  },
+
+  /**
+   * Deletes all members after re-authenticating the logged-in user with their password.
+   */
+  deleteAllMembersWithAuth: async (password) => {
+    if (!isFirebaseConfigured) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (password === "jsoyaadmin") {
+            localStorage.setItem(LOCAL_MEMBERS_KEY, JSON.stringify([]));
+            localStorage.setItem(LOCAL_COUNTER_KEY, "0");
+            notifySubscribers();
+            resolve();
+          } else {
+            reject(new Error("Incorrect password. Wipe database aborted."));
+          }
+        }, 600);
+      });
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated session found.");
+      }
+
+      // Create authentication credential and re-authenticate the user session
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+
+      // Perform actual deletions
+      await memberService.deleteAllMembers();
+    } catch (error) {
+      console.error("Authentication/wipe error:", error);
+      let friendlyError = error.message;
+      if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+        friendlyError = "Incorrect password. Wipe database aborted.";
+      }
+      throw new Error(friendlyError);
     }
   }
 };

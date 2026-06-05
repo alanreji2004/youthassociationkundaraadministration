@@ -147,12 +147,17 @@ const Membership = () => {
   };
 
   // Delete all members execution handler
-  const handleDeleteAllConfirm = async () => {
+  const handleDeleteAllConfirm = async (enteredPassword) => {
+    if (!enteredPassword) {
+      toast.error("Password is required to confirm database reset.");
+      return;
+    }
+    
     setIsDeleteModal2Open(false);
     setIsDeleting(true);
-    toast.info("Wiping entire database registry...", 0); // Keep open until finished
+    toast.info("Verifying credentials and wiping registry database...", 0);
     try {
-      await memberService.deleteAllMembers();
+      await memberService.deleteAllMembersWithAuth(enteredPassword);
       toast.success("All member records deleted and counter reset to 0.");
     } catch (err) {
       toast.error(err.message || "Failed to clear member database.");
@@ -483,16 +488,18 @@ const Membership = () => {
         isDanger={true}
       />
 
-      {/* Wipe Database Modal 2 (Second final confirmation) */}
+      {/* Wipe Database Modal 2 (Second final confirmation with password check) */}
       <ConfirmationModal
         isOpen={isDeleteModal2Open}
         title="FINAL WARNING: Wipe Member Database?"
-        message="This is the final confirmation. If you proceed, all records will be deleted and the serial number counter will reset back to 0. Click 'Confirm Wipe' to destroy all data."
+        message="This is the final confirmation. If you proceed, all records will be deleted and the serial number counter will reset back to 0. Please enter your administrator password to execute."
         onConfirm={handleDeleteAllConfirm}
         onCancel={() => setIsDeleteModal2Open(false)}
         confirmText="Confirm Wipe"
         cancelText="Cancel"
         isDanger={true}
+        showPasswordInput={true}
+        passwordPlaceholder="Confirm your password to reset database"
       />
     </div>
   );
