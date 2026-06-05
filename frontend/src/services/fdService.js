@@ -492,6 +492,60 @@ export const fdService = {
           const newFdNumber = renewalData.fdNumber.trim();
           const oldFd = fds[idx];
           const parentNumber = oldFd.fdNumber;
+
+          if (newFdNumber.toLowerCase() === parentNumber.toLowerCase()) {
+            const oldVal = { ...oldFd };
+            oldFd.principalAmount = parseFloat(renewalData.principalAmount);
+            oldFd.interestRate = parseFloat(renewalData.interestRate);
+            oldFd.depositDate = renewalData.depositDate;
+            oldFd.maturityDate = renewalData.maturityDate;
+            oldFd.maturityAmount = parseFloat(renewalData.maturityAmount);
+            oldFd.remarks = renewalData.remarks ? renewalData.remarks.trim() : "";
+            oldFd.status = "Active";
+
+            saveLocalData(LOCAL_FDS_KEY, fds);
+
+            const events = getLocalData(LOCAL_FD_EV_KEY);
+            events.push({
+              id: `local-ev-${Date.now()}`,
+              fdId: oldFd.id,
+              timestamp: new Date().toISOString(),
+              type: "FD Renewed",
+              description: `FD renewed in-place with certificate ${newFdNumber} by ${creator}. New Principal: ${renewalData.principalAmount}, Rate: ${renewalData.interestRate}%`
+            });
+            saveLocalData(LOCAL_FD_EV_KEY, events);
+
+            const txs = getLocalData(LOCAL_FD_TX_KEY);
+            txs.push({
+              id: `local-tx-${Date.now()}`,
+              fdId: oldFd.id,
+              date: renewalData.depositDate,
+              type: "Renewal",
+              description: `FD renewed in-place with new principal investment. Interest Rate: ${renewalData.interestRate}%`,
+              amount: parseFloat(renewalData.principalAmount),
+              referenceNumber: "AUTO",
+              createdBy: creator
+            });
+            saveLocalData(LOCAL_FD_TX_KEY, txs);
+
+            const audits = getLocalData(LOCAL_FD_AUDIT_KEY);
+            audits.push({
+              id: `local-aud-${Date.now()}`,
+              fdId: oldFd.id,
+              timestamp: new Date().toISOString(),
+              actionType: "Renew In-Place",
+              oldValue: JSON.stringify(oldVal),
+              newValue: JSON.stringify(oldFd),
+              user: creator
+            });
+            saveLocalData(LOCAL_FD_AUDIT_KEY, audits);
+
+            notifyFdListeners();
+            resolve(oldFd);
+            return;
+          }
+
+          const oldVal = { ...oldFd };
           oldFd.status = "Renewed";
           oldFd.childFdNumber = newFdNumber;
 
@@ -562,7 +616,7 @@ export const fdService = {
             fdId: oldFd.id,
             timestamp: new Date().toISOString(),
             actionType: "Renew",
-            oldValue: JSON.stringify(oldFd),
+            oldValue: JSON.stringify(oldVal),
             newValue: JSON.stringify(oldFd),
             user: creator
           });
@@ -594,6 +648,52 @@ export const fdService = {
 
         const parentData = parentSnap.data();
         const parentNumber = parentData.fdNumber;
+
+        if (newFdNumber.toLowerCase() === parentNumber.toLowerCase()) {
+          const nextData = {
+            ...parentData,
+            principalAmount: parseFloat(renewalData.principalAmount),
+            interestRate: parseFloat(renewalData.interestRate),
+            depositDate: renewalData.depositDate,
+            maturityDate: renewalData.maturityDate,
+            maturityAmount: parseFloat(renewalData.maturityAmount),
+            remarks: renewalData.remarks ? renewalData.remarks.trim() : "",
+            status: "Active"
+          };
+
+          transaction.update(parentRef, nextData);
+
+          const evRef = doc(collection(db, "fdEvents"));
+          transaction.set(evRef, {
+            fdId,
+            timestamp: new Date().toISOString(),
+            type: "FD Renewed",
+            description: `FD renewed in-place with certificate ${newFdNumber} by ${creator}. New Principal: ${renewalData.principalAmount}, Rate: ${renewalData.interestRate}%`
+          });
+
+          const txRef = doc(collection(db, "fdTransactions"));
+          transaction.set(txRef, {
+            fdId,
+            date: renewalData.depositDate,
+            type: "Renewal",
+            description: `FD renewed in-place with new principal investment. Interest Rate: ${renewalData.interestRate}%`,
+            amount: parseFloat(renewalData.principalAmount),
+            referenceNumber: "AUTO",
+            createdBy: creator
+          });
+
+          const auditRef = doc(collection(db, "fdAuditLogs"));
+          transaction.set(auditRef, {
+            fdId,
+            timestamp: new Date().toISOString(),
+            actionType: "Renew In-Place",
+            oldValue: JSON.stringify(parentData),
+            newValue: JSON.stringify(nextData),
+            user: creator
+          });
+
+          return { id: fdId, ...nextData };
+        }
 
         transaction.update(parentRef, {
           status: "Renewed",

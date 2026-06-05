@@ -228,8 +228,13 @@ const FixedDepositDetails = () => {
     }
     setIsSubmitting(true);
     try {
+      const isSameNumber = renewForm.fdNumber.trim().toLowerCase() === fd.fdNumber.trim().toLowerCase();
       const child = await fdService.renewFixedDeposit(fdId, renewForm);
-      toast.success(`FD renewed. New certificate ${child.fdNumber} created.`);
+      if (isSameNumber) {
+        toast.success(`FD ${fd.fdNumber} renewed in-place successfully.`);
+      } else {
+        toast.success(`FD renewed. New certificate ${child.fdNumber} created.`);
+      }
       setShowRenewModal(false);
       navigate(`/financial-accounts/fixed-deposits/${child.id}`);
     } catch (err) {
