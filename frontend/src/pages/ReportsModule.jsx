@@ -23,6 +23,8 @@ const ReportsModule = () => {
   const [payments, setPayments] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [receiptCategories, setReceiptCategories] = useState([]);
+  const [paymentCategories, setPaymentCategories] = useState([]);
 
   const [activeReport, setActiveReport] = useState("annual");
   const [startDate, setStartDate] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().split("T")[0]);
@@ -41,11 +43,19 @@ const ReportsModule = () => {
     const unsubEvents = financeService.subscribeEvents((data) => {
       setEvents(data);
     });
+    const unsubReceiptCats = financeService.subscribeReceiptCategories((data) => {
+      setReceiptCategories(data);
+    });
+    const unsubPaymentCats = financeService.subscribePaymentCategories((data) => {
+      setPaymentCategories(data);
+    });
 
     return () => {
       unsubReceipts();
       unsubPayments();
       unsubEvents();
+      unsubReceiptCats();
+      unsubPaymentCats();
     };
   }, []);
 
@@ -63,24 +73,15 @@ const ReportsModule = () => {
     const totalPay = rangePayments.reduce((sum, p) => sum + p.amount, 0);
     const closingBalance = openingBalance + totalRec - totalPay;
 
-    const recBreakdown = {
-      donations: rangeReceipts.filter(r => r.category === "Donation").reduce((sum, r) => sum + r.amount, 0),
-      sponsorships: rangeReceipts.filter(r => r.category === "Sponsorship").reduce((sum, r) => sum + r.amount, 0),
-      eventCollections: rangeReceipts.filter(r => r.category === "Event Collection").reduce((sum, r) => sum + r.amount, 0),
-      fundraising: rangeReceipts.filter(r => r.category === "Fundraising").reduce((sum, r) => sum + r.amount, 0),
-      otherIncome: rangeReceipts.filter(r => r.category === "Other Income").reduce((sum, r) => sum + r.amount, 0)
-    };
+    const recBreakdown = {};
+    receiptCategories.forEach(cat => {
+      recBreakdown[cat.name] = rangeReceipts.filter(r => !r.eventId && r.category === cat.name).reduce((sum, r) => sum + r.amount, 0);
+    });
 
-    const payBreakdown = {
-      food: rangePayments.filter(p => p.category === "Food Expenses").reduce((sum, p) => sum + p.amount, 0),
-      travel: rangePayments.filter(p => p.category === "Travel Expenses").reduce((sum, p) => sum + p.amount, 0),
-      program: rangePayments.filter(p => p.category === "Program Expenses").reduce((sum, p) => sum + p.amount, 0),
-      printing: rangePayments.filter(p => p.category === "Printing").reduce((sum, p) => sum + p.amount, 0),
-      equipment: rangePayments.filter(p => p.category === "Equipment").reduce((sum, p) => sum + p.amount, 0),
-      charity: rangePayments.filter(p => p.category === "Charity Activities").reduce((sum, p) => sum + p.amount, 0),
-      utility: rangePayments.filter(p => p.category === "Utility Payments").reduce((sum, p) => sum + p.amount, 0),
-      miscellaneous: rangePayments.filter(p => p.category === "Miscellaneous Expenses").reduce((sum, p) => sum + p.amount, 0)
-    };
+    const payBreakdown = {};
+    paymentCategories.forEach(cat => {
+      payBreakdown[cat.name] = rangePayments.filter(p => !p.eventId && p.category === cat.name).reduce((sum, p) => sum + p.amount, 0);
+    });
 
     const eventCont = events.map(ev => {
       const evRecs = receipts.filter(r => r.eventId === ev.id && r.date >= startDate && r.date <= endDate);
@@ -109,9 +110,11 @@ const ReportsModule = () => {
       paymentsBreakdown: payBreakdown,
       eventContributions: eventCont,
       rangeReceipts,
-      rangePayments
+      rangePayments,
+      receiptsCategories: receiptCategories.map(c => c.name),
+      paymentsCategories: paymentCategories.map(c => c.name)
     };
-  }, [receipts, payments, events, startDate, endDate, rangeGenerated]);
+  }, [receipts, payments, events, startDate, endDate, rangeGenerated, receiptCategories, paymentCategories]);
 
   const monthlySummaries = useMemo(() => {
     if (!rangeGenerated || !reportData) return [];
@@ -181,6 +184,16 @@ const ReportsModule = () => {
 
   const handleShareSummary = () => {
     if (!reportData) return;
+    const receiptsLines = receiptCategories
+      .filter(cat => (reportData.receiptsBreakdown[cat.name] || 0) > 0)
+      .map(cat => `- ${cat.name}: INR ${(reportData.receiptsBreakdown[cat.name] || 0).toFixed(2)}`)
+      .join("\n");
+
+    const paymentsLines = paymentCategories
+      .filter(cat => (reportData.paymentsBreakdown[cat.name] || 0) > 0)
+      .map(cat => `- ${cat.name}: INR ${(reportData.paymentsBreakdown[cat.name] || 0).toFixed(2)}`)
+      .join("\n");
+
     const summaryText = `St. Mary's Youth Association, Kundara
 Financial Summary Statement
 Period: ${startDate} to ${endDate}
@@ -191,11 +204,10 @@ Total Payments: INR ${reportData.totalPayments.toFixed(2)}
 Closing Balance: INR ${reportData.closingBalance.toFixed(2)}
 
 Receipts Breakdown:
-- Donations: INR ${reportData.receiptsBreakdown.donations.toFixed(2)}
-- Sponsorships: INR ${reportData.receiptsBreakdown.sponsorships.toFixed(2)}
-- Event Collections: INR ${reportData.receiptsBreakdown.eventCollections.toFixed(2)}
-- Fundraising: INR ${reportData.receiptsBreakdown.fundraising.toFixed(2)}
-- Other Income: INR ${reportData.receiptsBreakdown.otherIncome.toFixed(2)}
+${receiptsLines || "No inflows registered."}
+
+Payments Breakdown:
+${paymentsLines || "No outflows registered."}
 
 Generated on: ${new Date().toLocaleString()}
 Generated by: Administrator`;
@@ -422,26 +434,12 @@ Generated by: Administrator`;
                       <h4 className={styles.breakdownTitle}>Inbound Receipts Breakdown</h4>
                       <table className={styles.breakdownTable}>
                         <tbody>
-                          <tr>
-                            <th>Donations</th>
-                            <td>{formatCurrency(reportData.receiptsBreakdown.donations)}</td>
-                          </tr>
-                          <tr>
-                            <th>Sponsorships</th>
-                            <td>{formatCurrency(reportData.receiptsBreakdown.sponsorships)}</td>
-                          </tr>
-                          <tr>
-                            <th>Event Collections</th>
-                            <td>{formatCurrency(reportData.receiptsBreakdown.eventCollections)}</td>
-                          </tr>
-                          <tr>
-                            <th>Fundraising Collections</th>
-                            <td>{formatCurrency(reportData.receiptsBreakdown.fundraising)}</td>
-                          </tr>
-                          <tr>
-                            <th>Other Income</th>
-                            <td>{formatCurrency(reportData.receiptsBreakdown.otherIncome)}</td>
-                          </tr>
+                          {receiptCategories.filter(cat => (reportData.receiptsBreakdown[cat.name] || 0) > 0).map(cat => (
+                            <tr key={cat.id}>
+                              <th>{cat.name}</th>
+                              <td>{formatCurrency(reportData.receiptsBreakdown[cat.name] || 0)}</td>
+                            </tr>
+                          ))}
                           <tr className={styles.totalRow}>
                             <th>Total Receipts</th>
                             <td>{formatCurrency(reportData.totalReceipts)}</td>
@@ -454,38 +452,12 @@ Generated by: Administrator`;
                       <h4 className={styles.breakdownTitle}>Outbound Payments Breakdown</h4>
                       <table className={styles.breakdownTable}>
                         <tbody>
-                          <tr>
-                            <th>Food Expenses</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.food)}</td>
-                          </tr>
-                          <tr>
-                            <th>Travel Expenses</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.travel)}</td>
-                          </tr>
-                          <tr>
-                            <th>Program Expenses</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.program)}</td>
-                          </tr>
-                          <tr>
-                            <th>Printing</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.printing)}</td>
-                          </tr>
-                          <tr>
-                            <th>Equipment</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.equipment)}</td>
-                          </tr>
-                          <tr>
-                            <th>Charity Activities</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.charity)}</td>
-                          </tr>
-                          <tr>
-                            <th>Utility Payments</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.utility)}</td>
-                          </tr>
-                          <tr>
-                            <th>Miscellaneous Expenses</th>
-                            <td>{formatCurrency(reportData.paymentsBreakdown.miscellaneous)}</td>
-                          </tr>
+                          {paymentCategories.filter(cat => (reportData.paymentsBreakdown[cat.name] || 0) > 0).map(cat => (
+                            <tr key={cat.id}>
+                              <th>{cat.name}</th>
+                              <td>{formatCurrency(reportData.paymentsBreakdown[cat.name] || 0)}</td>
+                            </tr>
+                          ))}
                           <tr className={styles.totalRow}>
                             <th>Total Payments</th>
                             <td>{formatCurrency(reportData.totalPayments)}</td>

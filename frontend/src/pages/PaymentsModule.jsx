@@ -5,22 +5,13 @@ import { useToast } from "../components/Toast";
 import styles from "./PaymentsModule.module.css";
 
 const ITEMS_PER_PAGE = 10;
-const CATEGORIES = [
-  "Food Expenses",
-  "Travel Expenses",
-  "Program Expenses",
-  "Printing",
-  "Equipment",
-  "Charity Activities",
-  "Utility Payments",
-  "Miscellaneous Expenses"
-];
 
 const PaymentsModule = () => {
   const toast = useToast();
   const [payments, setPayments] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -56,12 +47,18 @@ const PaymentsModule = () => {
     const unsubEvents = financeService.subscribeEvents((data) => {
       setEvents(data);
     });
+    const unsubCats = financeService.subscribePaymentCategories((data) => {
+      setCategories(data.map(c => c.name));
+    });
 
     return () => {
       unsubPayments();
       unsubEvents();
+      unsubCats();
     };
   }, []);
+
+
 
   const nextPaymentNumber = useMemo(() => {
     if (payments.length === 0) return "PAY-1001";
@@ -107,7 +104,7 @@ const PaymentsModule = () => {
     setForm({
       paymentNumber: nextPaymentNumber,
       date: new Date().toISOString().split("T")[0],
-      category: "Program Expenses",
+      category: categories[0] || "Program Expenses",
       paidTo: "",
       description: "",
       amount: "",
@@ -150,7 +147,10 @@ const PaymentsModule = () => {
   const executeAdd = async () => {
     setIsSubmitting(true);
     try {
-      await financeService.addPayment(form);
+      await financeService.addPayment({
+        ...form,
+        category: form.category || categories[0] || "Program Expenses"
+      });
       toast.success("Payment voucher successfully posted to ledger Cash Book.");
       setShowAddModal(false);
     } catch (err) {
@@ -168,7 +168,10 @@ const PaymentsModule = () => {
     }
     setIsSubmitting(true);
     try {
-      await financeService.updatePayment(editingId, form);
+      await financeService.updatePayment(editingId, {
+        ...form,
+        category: form.category || categories[0] || "Program Expenses"
+      });
       toast.success("Payment voucher modifications successfully updated and audited.");
       setShowEditModal(false);
     } catch (err) {
@@ -254,7 +257,7 @@ const PaymentsModule = () => {
             aria-label="Filter by Category"
           >
             <option value="All">All Categories</option>
-            {CATEGORIES.map(c => (
+            {categories.map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -407,11 +410,11 @@ const PaymentsModule = () => {
                   <div className={styles.fg}>
                     <label>Category *</label>
                     <select
-                      value={form.category}
+                      value={form.category || categories[0] || ""}
                       onChange={(e) => setForm({ ...form, category: e.target.value })}
                       required
                     >
-                      {CATEGORIES.map(c => (
+                      {categories.map(c => (
                         <option key={c} value={c}>{c}</option>
                       ))}
                     </select>
@@ -581,11 +584,11 @@ const PaymentsModule = () => {
                 <div className={styles.fg}>
                   <label>Category *</label>
                   <select
-                    value={form.category}
+                    value={form.category || categories[0] || ""}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     required
                   >
-                    {CATEGORIES.map(c => (
+                    {categories.map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>

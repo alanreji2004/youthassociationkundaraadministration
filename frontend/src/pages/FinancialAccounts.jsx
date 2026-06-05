@@ -6,7 +6,8 @@ import {
   FiArrowUpRight, 
   FiCalendar, 
   FiFileText, 
-  FiDatabase 
+  FiDatabase,
+  FiSettings
 } from "react-icons/fi";
 import styles from "./FinancialAccounts.module.css";
 
@@ -96,6 +97,16 @@ const FinancialAccounts = () => {
           >
             <FiDatabase size={16} />
             <span>Fixed Deposits</span>
+          </NavLink>
+
+          <NavLink
+            to="settings"
+            className={({ isActive }) => 
+              isActive ? `${styles.tabLink} ${styles.tabActive}` : styles.tabLink
+            }
+          >
+            <FiSettings size={16} />
+            <span>Settings</span>
           </NavLink>
         </nav>
       </header>

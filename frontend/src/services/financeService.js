@@ -4,7 +4,10 @@ import {
   runTransaction,
   query,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 
@@ -16,6 +19,8 @@ const LOCAL_EVENTS_KEY = "smya_finance_events";
 const LOCAL_EVENT_DOC_KEY = "smya_finance_event_docs";
 const LOCAL_EVENT_NOTE_KEY = "smya_finance_event_notes";
 const LOCAL_FINANCE_AUDIT_KEY = "smya_finance_audit_logs";
+const LOCAL_RECEIPT_CATS_KEY = "smya_finance_receipt_categories";
+const LOCAL_PAYMENT_CATS_KEY = "smya_finance_payment_categories";
 
 const receiptsSubscribers = new Set();
 const paymentsSubscribers = new Set();
@@ -271,7 +276,7 @@ export const financeService = {
             date: receiptData.date,
             category: receiptData.category,
             source: receiptData.source.trim(),
-            description: receiptData.description.trim(),
+            description: (receiptData.description || "").trim(),
             amount: parseFloat(receiptData.amount),
             remarks: receiptData.remarks ? receiptData.remarks.trim() : "",
             eventId: receiptData.eventId || null,
@@ -310,7 +315,7 @@ export const financeService = {
           date: receiptData.date,
           category: receiptData.category,
           source: receiptData.source.trim(),
-          description: receiptData.description.trim(),
+          description: (receiptData.description || "").trim(),
           amount: parseFloat(receiptData.amount),
           remarks: receiptData.remarks ? receiptData.remarks.trim() : "",
           eventId: receiptData.eventId || null,
@@ -356,7 +361,7 @@ export const financeService = {
             date: updatedFields.date,
             category: updatedFields.category,
             source: updatedFields.source.trim(),
-            description: updatedFields.description.trim(),
+            description: (updatedFields.description || "").trim(),
             amount: parseFloat(updatedFields.amount),
             remarks: updatedFields.remarks ? updatedFields.remarks.trim() : "",
             eventId: updatedFields.eventId || null
@@ -396,7 +401,7 @@ export const financeService = {
           date: updatedFields.date,
           category: updatedFields.category,
           source: updatedFields.source.trim(),
-          description: updatedFields.description.trim(),
+          description: (updatedFields.description || "").trim(),
           amount: parseFloat(updatedFields.amount),
           remarks: updatedFields.remarks ? updatedFields.remarks.trim() : "",
           eventId: updatedFields.eventId || null
@@ -496,7 +501,7 @@ export const financeService = {
             date: paymentData.date,
             category: paymentData.category,
             paidTo: paymentData.paidTo.trim(),
-            description: paymentData.description.trim(),
+            description: (paymentData.description || "").trim(),
             amount: parseFloat(paymentData.amount),
             remarks: paymentData.remarks ? paymentData.remarks.trim() : "",
             eventId: paymentData.eventId || null,
@@ -535,7 +540,7 @@ export const financeService = {
           date: paymentData.date,
           category: paymentData.category,
           paidTo: paymentData.paidTo.trim(),
-          description: paymentData.description.trim(),
+          description: (paymentData.description || "").trim(),
           amount: parseFloat(paymentData.amount),
           remarks: paymentData.remarks ? paymentData.remarks.trim() : "",
           eventId: paymentData.eventId || null,
@@ -581,7 +586,7 @@ export const financeService = {
             date: updatedFields.date,
             category: updatedFields.category,
             paidTo: updatedFields.paidTo.trim(),
-            description: updatedFields.description.trim(),
+            description: (updatedFields.description || "").trim(),
             amount: parseFloat(updatedFields.amount),
             remarks: updatedFields.remarks ? updatedFields.remarks.trim() : "",
             eventId: updatedFields.eventId || null
@@ -621,7 +626,7 @@ export const financeService = {
           date: updatedFields.date,
           category: updatedFields.category,
           paidTo: updatedFields.paidTo.trim(),
-          description: updatedFields.description.trim(),
+          description: (updatedFields.description || "").trim(),
           amount: parseFloat(updatedFields.amount),
           remarks: updatedFields.remarks ? updatedFields.remarks.trim() : "",
           eventId: updatedFields.eventId || null
@@ -1104,5 +1109,190 @@ export const financeService = {
       console.error(err);
       throw new Error(`Failed to delete note: ${err.message}`, { cause: err });
     }
+  },
+
+  subscribeReceiptCategories: (callback) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_RECEIPT_CATS_KEY);
+      if (!cats || cats.length === 0) {
+        const defaultCats = [
+          { id: "rc-1", name: "Donation" },
+          { id: "rc-2", name: "Sponsorship" },
+          { id: "rc-3", name: "Event Collection" },
+          { id: "rc-4", name: "Fundraising" },
+          { id: "rc-5", name: "Other Income" }
+        ];
+        saveLocalData(LOCAL_RECEIPT_CATS_KEY, defaultCats);
+        callback(defaultCats);
+        return () => {};
+      }
+      callback(cats);
+      return () => {};
+    }
+    const q = query(collection(db, "financeReceiptCategories"), orderBy("name", "asc"));
+    return onSnapshot(q, (snapshot) => {
+      let list = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      if (list.length === 0) {
+        const defaultCats = [
+          "Donation",
+          "Sponsorship",
+          "Event Collection",
+          "Fundraising",
+          "Other Income"
+        ];
+        const mapped = defaultCats.map((name, i) => ({ id: `default-rc-${i}`, name }));
+        callback(mapped);
+      } else {
+        callback(list);
+      }
+    }, (error) => {
+      console.error(error);
+      callback([
+        { id: "rc-1", name: "Donation" },
+        { id: "rc-2", name: "Sponsorship" },
+        { id: "rc-3", name: "Event Collection" },
+        { id: "rc-4", name: "Fundraising" },
+        { id: "rc-5", name: "Other Income" }
+      ]);
+    });
+  },
+
+  subscribePaymentCategories: (callback) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_PAYMENT_CATS_KEY);
+      if (!cats || cats.length === 0) {
+        const defaultCats = [
+          { id: "pc-1", name: "Food Expenses" },
+          { id: "pc-2", name: "Travel Expenses" },
+          { id: "pc-3", name: "Program Expenses" },
+          { id: "pc-4", name: "Printing" },
+          { id: "pc-5", name: "Equipment" },
+          { id: "pc-6", name: "Charity Activities" },
+          { id: "pc-7", name: "Utility Payments" },
+          { id: "pc-8", name: "Miscellaneous Expenses" }
+        ];
+        saveLocalData(LOCAL_PAYMENT_CATS_KEY, defaultCats);
+        callback(defaultCats);
+        return () => {};
+      }
+      callback(cats);
+      return () => {};
+    }
+    const q = query(collection(db, "financePaymentCategories"), orderBy("name", "asc"));
+    return onSnapshot(q, (snapshot) => {
+      let list = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      if (list.length === 0) {
+        const defaultCats = [
+          "Food Expenses",
+          "Travel Expenses",
+          "Program Expenses",
+          "Printing",
+          "Equipment",
+          "Charity Activities",
+          "Utility Payments",
+          "Miscellaneous Expenses"
+        ];
+        const mapped = defaultCats.map((name, i) => ({ id: `default-pc-${i}`, name }));
+        callback(mapped);
+      } else {
+        callback(list);
+      }
+    }, (error) => {
+      console.error(error);
+      callback([
+        { id: "pc-1", name: "Food Expenses" },
+        { id: "pc-2", name: "Travel Expenses" },
+        { id: "pc-3", name: "Program Expenses" },
+        { id: "pc-4", name: "Printing" },
+        { id: "pc-5", name: "Equipment" },
+        { id: "pc-6", name: "Charity Activities" },
+        { id: "pc-7", name: "Utility Payments" },
+        { id: "pc-8", name: "Miscellaneous Expenses" }
+      ]);
+    });
+  },
+
+  addReceiptCategory: async (name) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_RECEIPT_CATS_KEY) || [];
+      const newCat = { id: `rc-${Date.now()}`, name: name.trim() };
+      cats.push(newCat);
+      saveLocalData(LOCAL_RECEIPT_CATS_KEY, cats);
+      return newCat;
+    }
+    const docRef = await addDoc(collection(db, "financeReceiptCategories"), { name: name.trim(), createdAt: new Date().toISOString() });
+    return { id: docRef.id, name: name.trim() };
+  },
+
+  updateReceiptCategory: async (id, name) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_RECEIPT_CATS_KEY) || [];
+      const idx = cats.findIndex(c => c.id === id);
+      if (idx !== -1) {
+        cats[idx].name = name.trim();
+        saveLocalData(LOCAL_RECEIPT_CATS_KEY, cats);
+      }
+      return { id, name: name.trim() };
+    }
+    const docRef = doc(db, "financeReceiptCategories", id);
+    await updateDoc(docRef, { name: name.trim() });
+    return { id, name: name.trim() };
+  },
+
+  deleteReceiptCategory: async (id) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_RECEIPT_CATS_KEY) || [];
+      const filtered = cats.filter(c => c.id !== id);
+      saveLocalData(LOCAL_RECEIPT_CATS_KEY, filtered);
+      return id;
+    }
+    const docRef = doc(db, "financeReceiptCategories", id);
+    await deleteDoc(docRef);
+    return id;
+  },
+
+  addPaymentCategory: async (name) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_PAYMENT_CATS_KEY) || [];
+      const newCat = { id: `pc-${Date.now()}`, name: name.trim() };
+      cats.push(newCat);
+      saveLocalData(LOCAL_PAYMENT_CATS_KEY, cats);
+      return newCat;
+    }
+    const docRef = await addDoc(collection(db, "financePaymentCategories"), { name: name.trim(), createdAt: new Date().toISOString() });
+    return { id: docRef.id, name: name.trim() };
+  },
+
+  updatePaymentCategory: async (id, name) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_PAYMENT_CATS_KEY) || [];
+      const idx = cats.findIndex(c => c.id === id);
+      if (idx !== -1) {
+        cats[idx].name = name.trim();
+        saveLocalData(LOCAL_PAYMENT_CATS_KEY, cats);
+      }
+      return { id, name: name.trim() };
+    }
+    const docRef = doc(db, "financePaymentCategories", id);
+    await updateDoc(docRef, { name: name.trim() });
+    return { id, name: name.trim() };
+  },
+
+  deletePaymentCategory: async (id) => {
+    if (!isFirebaseConfigured) {
+      const cats = getLocalData(LOCAL_PAYMENT_CATS_KEY) || [];
+      const filtered = cats.filter(c => c.id !== id);
+      saveLocalData(LOCAL_PAYMENT_CATS_KEY, filtered);
+      return id;
+    }
+    const docRef = doc(db, "financePaymentCategories", id);
+    await deleteDoc(docRef);
+    return id;
   }
 };

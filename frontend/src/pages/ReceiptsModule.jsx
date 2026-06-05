@@ -5,13 +5,13 @@ import { useToast } from "../components/Toast";
 import styles from "./ReceiptsModule.module.css";
 
 const ITEMS_PER_PAGE = 10;
-const CATEGORIES = ["Donation", "Sponsorship", "Event Collection", "Fundraising", "Other Income"];
 
 const ReceiptsModule = () => {
   const toast = useToast();
   const [receipts, setReceipts] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -47,12 +47,17 @@ const ReceiptsModule = () => {
     const unsubEvents = financeService.subscribeEvents((data) => {
       setEvents(data);
     });
+    const unsubCats = financeService.subscribeReceiptCategories((data) => {
+      setCategories(data.map(c => c.name));
+    });
 
     return () => {
       unsubReceipts();
       unsubEvents();
+      unsubCats();
     };
   }, []);
+
 
   const nextReceiptNumber = useMemo(() => {
     if (receipts.length === 0) return "REC-1001";
@@ -98,7 +103,7 @@ const ReceiptsModule = () => {
     setForm({
       receiptNumber: nextReceiptNumber,
       date: new Date().toISOString().split("T")[0],
-      category: "Donation",
+      category: categories[0] || "Donation",
       source: "",
       description: "",
       amount: "",
@@ -131,7 +136,7 @@ const ReceiptsModule = () => {
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
-    if (!form.receiptNumber.trim() || !form.date || !form.source.trim() || !form.description.trim() || parseFloat(form.amount) <= 0) {
+    if (!form.receiptNumber.trim() || !form.date || !form.source.trim() || parseFloat(form.amount) <= 0) {
       toast.error("Please fill in all required fields correctly.");
       return;
     }
@@ -141,7 +146,10 @@ const ReceiptsModule = () => {
   const executeAdd = async () => {
     setIsSubmitting(true);
     try {
-      await financeService.addReceipt(form);
+      await financeService.addReceipt({
+        ...form,
+        category: form.category || categories[0] || "Donation"
+      });
       toast.success("Receipt successfully registered and posted to Cash Book.");
       setShowAddModal(false);
     } catch (err) {
@@ -153,13 +161,16 @@ const ReceiptsModule = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (!form.date || !form.source.trim() || !form.description.trim() || parseFloat(form.amount) <= 0) {
+    if (!form.date || !form.source.trim() || parseFloat(form.amount) <= 0) {
       toast.error("Please fill in all required fields correctly.");
       return;
     }
     setIsSubmitting(true);
     try {
-      await financeService.updateReceipt(editingId, form);
+      await financeService.updateReceipt(editingId, {
+        ...form,
+        category: form.category || categories[0] || "Donation"
+      });
       toast.success("Receipt modifications successfully updated and audited.");
       setShowEditModal(false);
     } catch (err) {
@@ -245,7 +256,7 @@ const ReceiptsModule = () => {
             aria-label="Filter by Category"
           >
             <option value="All">All Categories</option>
-            {CATEGORIES.map(c => (
+            {categories.map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -398,11 +409,11 @@ const ReceiptsModule = () => {
                   <div className={styles.fg}>
                     <label>Category *</label>
                     <select
-                      value={form.category}
+                      value={form.category || categories[0] || ""}
                       onChange={(e) => setForm({ ...form, category: e.target.value })}
                       required
                     >
-                      {CATEGORIES.map(c => (
+                      {categories.map(c => (
                         <option key={c} value={c}>{c}</option>
                       ))}
                     </select>
@@ -445,12 +456,11 @@ const ReceiptsModule = () => {
                   </div>
 
                   <div className={`${styles.fg} ${styles.fgFull}`}>
-                    <label>Description *</label>
+                    <label>Description</label>
                     <textarea
                       placeholder="Voucher narrative or particulars detail..."
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
-                      required
                       rows={2}
                     />
                   </div>
@@ -572,11 +582,11 @@ const ReceiptsModule = () => {
                 <div className={styles.fg}>
                   <label>Category *</label>
                   <select
-                    value={form.category}
+                    value={form.category || categories[0] || ""}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     required
                   >
-                    {CATEGORIES.map(c => (
+                    {categories.map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -617,11 +627,10 @@ const ReceiptsModule = () => {
                 </div>
 
                 <div className={`${styles.fg} ${styles.fgFull}`}>
-                  <label>Description *</label>
+                  <label>Description</label>
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    required
                     rows={2}
                   />
                 </div>

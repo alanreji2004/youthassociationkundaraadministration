@@ -17,6 +17,7 @@ import PaymentsModule from "../pages/PaymentsModule";
 import EventsModule from "../pages/EventsModule";
 import EventDetails from "../pages/EventDetails";
 import ReportsModule from "../pages/ReportsModule";
+import FinanceSettings from "../pages/FinanceSettings";
 
 const AppRoutes = () => {
   return (
@@ -50,6 +51,7 @@ const AppRoutes = () => {
           <Route path="fixed-deposits" element={<FixedDepositsDashboard />} />
           <Route path="fixed-deposits/new" element={<AddFixedDeposit />} />
           <Route path="fixed-deposits/:fdId" element={<FixedDepositDetails />} />
+          <Route path="settings" element={<FinanceSettings />} />
         </Route>
       </Route>
 

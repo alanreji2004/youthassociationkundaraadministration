@@ -365,7 +365,15 @@
   .summaryGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  
+}
+
+@media (min-width: 600px) and (max-width: 900px) {
+  .eventsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 901px) {
   .eventsGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

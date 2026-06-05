@@ -113,25 +113,28 @@ export const exportAnnualReportToExcel = (reportData) => {
     ["Total Disbursed Payments Outflows (-)", formatCurrencyNumber(reportData.totalPayments)],
     ["Closing Cash Position Balance (=)", formatCurrencyNumber(reportData.closingBalance)],
     [],
-    ["INBOUND RECEIPTS BREAKDOWN", "AMOUNT (INR)"],
-    ["Donations", formatCurrencyNumber(reportData.receiptsBreakdown.donations)],
-    ["Sponsorships", formatCurrencyNumber(reportData.receiptsBreakdown.sponsorships)],
-    ["Event Collections", formatCurrencyNumber(reportData.receiptsBreakdown.eventCollections)],
-    ["Fundraising Collections", formatCurrencyNumber(reportData.receiptsBreakdown.fundraising)],
-    ["Other Income", formatCurrencyNumber(reportData.receiptsBreakdown.otherIncome)],
-    ["TOTAL RECEIPTS", formatCurrencyNumber(reportData.totalReceipts)],
-    [],
-    ["OUTBOUND PAYMENTS BREAKDOWN", "AMOUNT (INR)"],
-    ["Food Expenses", formatCurrencyNumber(reportData.paymentsBreakdown.food)],
-    ["Travel Expenses", formatCurrencyNumber(reportData.paymentsBreakdown.travel)],
-    ["Program Expenses", formatCurrencyNumber(reportData.paymentsBreakdown.program)],
-    ["Printing", formatCurrencyNumber(reportData.paymentsBreakdown.printing)],
-    ["Equipment", formatCurrencyNumber(reportData.paymentsBreakdown.equipment)],
-    ["Charity Activities", formatCurrencyNumber(reportData.paymentsBreakdown.charity)],
-    ["Utility Payments", formatCurrencyNumber(reportData.paymentsBreakdown.utility)],
-    ["Miscellaneous Expenses", formatCurrencyNumber(reportData.paymentsBreakdown.miscellaneous)],
-    ["TOTAL PAYMENTS", formatCurrencyNumber(reportData.totalPayments)]
+    ["INBOUND RECEIPTS BREAKDOWN", "AMOUNT (INR)"]
   ];
+
+  const receiptsCategories = reportData.receiptsCategories || [];
+  receiptsCategories.forEach(catName => {
+    const val = reportData.receiptsBreakdown[catName] || 0;
+    if (val > 0) {
+      summaryRows.push([catName, formatCurrencyNumber(val)]);
+    }
+  });
+  summaryRows.push(["TOTAL RECEIPTS", formatCurrencyNumber(reportData.totalReceipts)]);
+  summaryRows.push([]);
+
+  summaryRows.push(["OUTBOUND PAYMENTS BREAKDOWN", "AMOUNT (INR)"]);
+  const paymentsCategories = reportData.paymentsCategories || [];
+  paymentsCategories.forEach(catName => {
+    const val = reportData.paymentsBreakdown[catName] || 0;
+    if (val > 0) {
+      summaryRows.push([catName, formatCurrencyNumber(val)]);
+    }
+  });
+  summaryRows.push(["TOTAL PAYMENTS", formatCurrencyNumber(reportData.totalPayments)]);
 
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
   wsSummary["!cols"] = [{ wch: 35 }, { wch: 20 }];

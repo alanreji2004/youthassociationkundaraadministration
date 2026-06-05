@@ -15,17 +15,7 @@ import { financeService } from "../services/financeService";
 import { useToast } from "../components/Toast";
 import styles from "./EventDetails.module.css";
 
-const INCOME_CATEGORIES = ["Event Collection", "Sponsorship", "Donation", "Fundraising", "Other Income"];
-const EXPENSE_CATEGORIES = [
-  "Program Expenses",
-  "Food Expenses",
-  "Travel Expenses",
-  "Printing",
-  "Equipment",
-  "Charity Activities",
-  "Utility Payments",
-  "Miscellaneous Expenses"
-];
+
 
 const EventDetails = () => {
   const { eventId } = useParams();
@@ -46,8 +36,6 @@ const EventDetails = () => {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showAddIncomeModal, setShowAddIncomeModal] = useState(false);
-  const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [showAddDocModal, setShowAddDocModal] = useState(false);
 
@@ -57,6 +45,9 @@ const EventDetails = () => {
   const [noteForm, setNoteForm] = useState({ content: "" });
   const [docForm, setDocForm] = useState({ name: "", type: "Invoice", url: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [receiptCategories, setReceiptCategories] = useState([]);
+  const [paymentCategories, setPaymentCategories] = useState([]);
 
   useEffect(() => {
     const unsubEvents = financeService.subscribeEvents((data) => {
@@ -72,6 +63,12 @@ const EventDetails = () => {
     const unsubDocs = financeService.subscribeEventDocuments(eventId, (data) => setDocuments(data));
     const unsubNotes = financeService.subscribeEventNotes(eventId, (data) => setNotes(data));
     const unsubAudits = financeService.subscribeEventAuditLogs(eventId, (data) => setAuditLogs(data));
+    const unsubReceiptCats = financeService.subscribeReceiptCategories((data) => {
+      setReceiptCategories(data.map(c => c.name));
+    });
+    const unsubPaymentCats = financeService.subscribePaymentCategories((data) => {
+      setPaymentCategories(data.map(c => c.name));
+    });
 
     return () => {
       unsubEvents();
@@ -80,6 +77,8 @@ const EventDetails = () => {
       unsubDocs();
       unsubNotes();
       unsubAudits();
+      unsubReceiptCats();
+      unsubPaymentCats();
     };
   }, [eventId]);
 
@@ -98,6 +97,8 @@ const EventDetails = () => {
   const eventItem = useMemo(() => {
     return events.find(e => e.id === eventId);
   }, [events, eventId]);
+
+
 
   const eventReceipts = useMemo(() => {
     return receipts.filter(r => r.eventId === eventId);
@@ -165,33 +166,7 @@ const EventDetails = () => {
     setShowActionsMenu(false);
   };
 
-  const handleOpenAddIncomeModal = () => {
-    setIncomeForm({
-      receiptNumber: nextReceiptNumber,
-      date: new Date().toISOString().split("T")[0],
-      category: "Event Collection",
-      source: "",
-      description: `Collection for ${eventItem?.name}`,
-      amount: "",
-      remarks: ""
-    });
-    setShowAddIncomeModal(true);
-    setShowActionsMenu(false);
-  };
 
-  const handleOpenAddExpenseModal = () => {
-    setExpenseForm({
-      paymentNumber: nextPaymentNumber,
-      date: new Date().toISOString().split("T")[0],
-      category: "Program Expenses",
-      paidTo: "",
-      description: `Expense for ${eventItem?.name}`,
-      amount: "",
-      remarks: ""
-    });
-    setShowAddExpenseModal(true);
-    setShowActionsMenu(false);
-  };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
@@ -213,15 +188,36 @@ const EventDetails = () => {
 
   const handleAddIncomeSubmit = async (e) => {
     e.preventDefault();
-    if (!incomeForm.receiptNumber.trim() || !incomeForm.date || !incomeForm.source.trim() || !incomeForm.description.trim() || parseFloat(incomeForm.amount) <= 0) {
+    const receiptNum = incomeForm.receiptNumber.trim() || nextReceiptNumber;
+    const formDate = incomeForm.date || new Date().toISOString().split("T")[0];
+    const sourceName = incomeForm.source.trim();
+    const amountVal = parseFloat(incomeForm.amount);
+    if (!receiptNum || !formDate || !sourceName || isNaN(amountVal) || amountVal <= 0) {
       toast.error("Please fill in all required fields correctly.");
       return;
     }
     setIsSubmitting(true);
     try {
-      await financeService.addReceipt({ ...incomeForm, eventId });
+      await financeService.addReceipt({
+        receiptNumber: receiptNum,
+        date: formDate,
+        source: sourceName,
+        amount: amountVal,
+        category: incomeForm.category || receiptCategories[0] || "Event Collection",
+        description: incomeForm.description.trim() || "Event Income",
+        remarks: incomeForm.remarks.trim(),
+        eventId
+      });
       toast.success("Income entry registered successfully.");
-      setShowAddIncomeModal(false);
+      setIncomeForm({
+        receiptNumber: "",
+        date: new Date().toISOString().split("T")[0],
+        category: receiptCategories[0] || "Event Collection",
+        source: "",
+        description: "",
+        amount: "",
+        remarks: ""
+      });
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -231,15 +227,36 @@ const EventDetails = () => {
 
   const handleAddExpenseSubmit = async (e) => {
     e.preventDefault();
-    if (!expenseForm.paymentNumber.trim() || !expenseForm.date || !expenseForm.paidTo.trim() || !expenseForm.description.trim() || parseFloat(expenseForm.amount) <= 0) {
+    const paymentNum = expenseForm.paymentNumber.trim() || nextPaymentNumber;
+    const formDate = expenseForm.date || new Date().toISOString().split("T")[0];
+    const paidToName = expenseForm.paidTo.trim();
+    const amountVal = parseFloat(expenseForm.amount);
+    if (!paymentNum || !formDate || !paidToName || isNaN(amountVal) || amountVal <= 0) {
       toast.error("Please fill in all required fields correctly.");
       return;
     }
     setIsSubmitting(true);
     try {
-      await financeService.addPayment({ ...expenseForm, eventId });
+      await financeService.addPayment({
+        paymentNumber: paymentNum,
+        date: formDate,
+        paidTo: paidToName,
+        amount: amountVal,
+        category: expenseForm.category || paymentCategories[0] || "Program Expenses",
+        description: expenseForm.description.trim() || "Event Expense",
+        remarks: expenseForm.remarks.trim(),
+        eventId
+      });
       toast.success("Expense entry registered successfully.");
-      setShowAddExpenseModal(false);
+      setExpenseForm({
+        paymentNumber: "",
+        date: new Date().toISOString().split("T")[0],
+        category: paymentCategories[0] || "Program Expenses",
+        paidTo: "",
+        description: "",
+        amount: "",
+        remarks: ""
+      });
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -357,13 +374,13 @@ const EventDetails = () => {
                   <FiEdit3 className={styles.itemIcon} />
                   <span>Edit Details</span>
                 </button>
-                <button type="button" onClick={handleOpenAddIncomeModal} className={styles.dropdownItem}>
+                <button type="button" onClick={() => { setActiveTab("incomes"); setShowActionsMenu(false); }} className={styles.dropdownItem}>
                   <FiPlus className={styles.itemIcon} />
-                  <span>Add Income Posting</span>
+                  <span>New Receipt Entry</span>
                 </button>
-                <button type="button" onClick={handleOpenAddExpenseModal} className={styles.dropdownItem}>
+                <button type="button" onClick={() => { setActiveTab("expenses"); setShowActionsMenu(false); }} className={styles.dropdownItem}>
                   <FiPlus className={styles.itemIcon} />
-                  <span>Add Expense Posting</span>
+                  <span>New Payment Entry</span>
                 </button>
                 <div className={styles.menuDivider} />
                 <button type="button" onClick={() => { setShowAddNoteModal(true); setNoteForm({ content: "" }); setShowActionsMenu(false); }} className={styles.dropdownItem}>
@@ -481,15 +498,18 @@ const EventDetails = () => {
                   <h4 className={styles.cardDetailTitle}>Receipts Collections Breakdown</h4>
                   <table className={styles.detailsTable}>
                     <tbody>
-                      {INCOME_CATEGORIES.map(cat => {
-                        const sum = eventReceipts.filter(r => r.category === cat).reduce((s, r) => s + r.amount, 0);
-                        return (
+                      {Array.from(new Set([...receiptCategories, ...eventReceipts.map(r => r.category)]))
+                        .map(cat => {
+                          const sum = eventReceipts.filter(r => r.category === cat).reduce((s, r) => s + r.amount, 0);
+                          return { cat, sum };
+                        })
+                        .filter(item => item.sum > 0)
+                        .map(({ cat, sum }) => (
                           <tr key={cat}>
                             <th>{cat}</th>
                             <td className={styles.amountText}>{formatCurrency(sum)}</td>
                           </tr>
-                        );
-                      })}
+                        ))}
                       <tr className={styles.totalRow}>
                         <th>Total Collected Inflows</th>
                         <td className={styles.amountText}>{formatCurrency(financialSummary.totalCollected)}</td>
@@ -502,15 +522,18 @@ const EventDetails = () => {
                   <h4 className={styles.cardDetailTitle}>Payments Expense Breakdown</h4>
                   <table className={styles.detailsTable}>
                     <tbody>
-                      {EXPENSE_CATEGORIES.map(cat => {
-                        const sum = eventPayments.filter(p => p.category === cat).reduce((s, p) => s + p.amount, 0);
-                        return (
+                      {Array.from(new Set([...paymentCategories, ...eventPayments.map(p => p.category)]))
+                        .map(cat => {
+                          const sum = eventPayments.filter(p => p.category === cat).reduce((s, p) => s + p.amount, 0);
+                          return { cat, sum };
+                        })
+                        .filter(item => item.sum > 0)
+                        .map(({ cat, sum }) => (
                           <tr key={cat}>
                             <th>{cat}</th>
                             <td className={styles.amountText}>{formatCurrency(sum)}</td>
                           </tr>
-                        );
-                      })}
+                        ))}
                       <tr className={styles.totalRow}>
                         <th>Total Expense Outflows</th>
                         <td className={styles.amountText}>{formatCurrency(financialSummary.totalExpenses)}</td>
@@ -523,72 +546,208 @@ const EventDetails = () => {
           )}
 
           {activeTab === "incomes" && (
-            <div className={styles.tableResponsive}>
-              <table className={styles.table}>
-                <thead className={styles.thead}>
-                  <tr>
-                    <th>Voucher Number</th>
-                    <th>Date</th>
-                    <th>Category</th>
-                    <th>Depositor Source</th>
-                    <th>Description</th>
-                    <th style={{ textAlign: "right" }}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {eventReceipts.length === 0 ? (
+            <div className={styles.tabSection}>
+              <form onSubmit={handleAddIncomeSubmit} className={styles.inlineForm}>
+                <div className={styles.inlineFg}>
+                  <label>Receipt Number</label>
+                  <input
+                    type="text"
+                    placeholder={nextReceiptNumber}
+                    value={incomeForm.receiptNumber}
+                    onChange={(e) => setIncomeForm({ ...incomeForm, receiptNumber: e.target.value })}
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    value={incomeForm.date || new Date().toISOString().split("T")[0]}
+                    onChange={(e) => setIncomeForm({ ...incomeForm, date: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Category</label>
+                  <select
+                    value={incomeForm.category || receiptCategories[0] || ""}
+                    onChange={(e) => setIncomeForm({ ...incomeForm, category: e.target.value })}
+                    required
+                  >
+                    {receiptCategories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Source / Depositor</label>
+                  <input
+                    type="text"
+                    placeholder="Depositor..."
+                    value={incomeForm.source}
+                    onChange={(e) => setIncomeForm({ ...incomeForm, source: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Amount (INR)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={incomeForm.amount}
+                    onChange={(e) => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Remarks</label>
+                  <input
+                    type="text"
+                    placeholder="Remarks..."
+                    value={incomeForm.remarks}
+                    onChange={(e) => setIncomeForm({ ...incomeForm, remarks: e.target.value })}
+                  />
+                </div>
+                <button type="submit" className={styles.inlineAddBtn} disabled={isSubmitting}>
+                  Add Receipt
+                </button>
+              </form>
+
+              <div className={styles.tableResponsive}>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
                     <tr>
-                      <td colSpan="6" className={styles.emptyTableText}>No receipts registered for this event.</td>
+                      <th>Voucher Number</th>
+                      <th>Date</th>
+                      <th>Category</th>
+                      <th>Depositor Source</th>
+                      <th>Description</th>
+                      <th style={{ textAlign: "right" }}>Amount</th>
                     </tr>
-                  ) : (
-                    eventReceipts.map(r => (
-                      <tr key={r.id} className={styles.tr}>
-                        <td className={styles.refCell}>{r.receiptNumber}</td>
-                        <td className={styles.dateCell}>{r.date}</td>
-                        <td><span className={styles.badge}>{r.category}</span></td>
-                        <td className={styles.boldText}>{r.source}</td>
-                        <td>{r.description}</td>
-                        <td className={`${styles.amountCell} ${styles.collectedText}`}>{formatCurrency(r.amount)}</td>
+                  </thead>
+                  <tbody>
+                    {eventReceipts.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className={styles.emptyTableText}>No receipts registered for this event.</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      eventReceipts.map(r => (
+                        <tr key={r.id} className={styles.tr}>
+                          <td className={styles.refCell}>{r.receiptNumber}</td>
+                          <td className={styles.dateCell}>{r.date}</td>
+                          <td><span className={styles.badge}>{r.category}</span></td>
+                          <td className={styles.boldText}>{r.source}</td>
+                          <td>{r.description}</td>
+                          <td className={`${styles.amountCell} ${styles.collectedText}`}>{formatCurrency(r.amount)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
           {activeTab === "expenses" && (
-            <div className={styles.tableResponsive}>
-              <table className={styles.table}>
-                <thead className={styles.thead}>
-                  <tr>
-                    <th>Voucher Number</th>
-                    <th>Date</th>
-                    <th>Category</th>
-                    <th>Paid To Vendor</th>
-                    <th>Description</th>
-                    <th style={{ textAlign: "right" }}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {eventPayments.length === 0 ? (
+            <div className={styles.tabSection}>
+              <form onSubmit={handleAddExpenseSubmit} className={styles.inlineForm}>
+                <div className={styles.inlineFg}>
+                  <label>Payment Number</label>
+                  <input
+                    type="text"
+                    placeholder={nextPaymentNumber}
+                    value={expenseForm.paymentNumber}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, paymentNumber: e.target.value })}
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    value={expenseForm.date || new Date().toISOString().split("T")[0]}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Category</label>
+                  <select
+                    value={expenseForm.category || paymentCategories[0] || ""}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                    required
+                  >
+                    {paymentCategories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Vendor / Payee</label>
+                  <input
+                    type="text"
+                    placeholder="Vendor name..."
+                    value={expenseForm.paidTo}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, paidTo: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Amount (INR)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={expenseForm.amount}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.inlineFg}>
+                  <label>Remarks</label>
+                  <input
+                    type="text"
+                    placeholder="Remarks..."
+                    value={expenseForm.remarks}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, remarks: e.target.value })}
+                  />
+                </div>
+                <button type="submit" className={styles.inlineAddBtn} disabled={isSubmitting}>
+                  Add Payment
+                </button>
+              </form>
+
+              <div className={styles.tableResponsive}>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
                     <tr>
-                      <td colSpan="6" className={styles.emptyTableText}>No payments registered for this event.</td>
+                      <th>Voucher Number</th>
+                      <th>Date</th>
+                      <th>Category</th>
+                      <th>Paid To Vendor</th>
+                      <th>Description</th>
+                      <th style={{ textAlign: "right" }}>Amount</th>
                     </tr>
-                  ) : (
-                    eventPayments.map(p => (
-                      <tr key={p.id} className={styles.tr}>
-                        <td className={styles.refCell}>{p.paymentNumber}</td>
-                        <td className={styles.dateCell}>{p.date}</td>
-                        <td><span className={styles.badge}>{p.category}</span></td>
-                        <td className={styles.boldText}>{p.paidTo}</td>
-                        <td>{p.description}</td>
-                        <td className={`${styles.amountCell} ${styles.expensesText}`}>{formatCurrency(p.amount)}</td>
+                  </thead>
+                  <tbody>
+                    {eventPayments.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className={styles.emptyTableText}>No payments registered for this event.</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      eventPayments.map(p => (
+                        <tr key={p.id} className={styles.tr}>
+                          <td className={styles.refCell}>{p.paymentNumber}</td>
+                          <td className={styles.dateCell}>{p.date}</td>
+                          <td><span className={styles.badge}>{p.category}</span></td>
+                          <td className={styles.boldText}>{p.paidTo}</td>
+                          <td>{p.description}</td>
+                          <td className={`${styles.amountCell} ${styles.expensesText}`}>{formatCurrency(p.amount)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
@@ -682,6 +841,8 @@ const EventDetails = () => {
               </table>
             </div>
           )}
+
+
         </div>
       </div>
 
@@ -771,203 +932,8 @@ const EventDetails = () => {
         </div>
       )}
 
-      {showAddIncomeModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h3>Add Event Income Posting</h3>
-              <button onClick={() => setShowAddIncomeModal(false)} className={styles.modalCloseBtn} disabled={isSubmitting}>
-                <FiX size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleAddIncomeSubmit} className={styles.modalForm}>
-              <div className={styles.modalGrid}>
-                <div className={styles.fg}>
-                  <label>Receipt Number *</label>
-                  <input
-                    type="text"
-                    value={incomeForm.receiptNumber}
-                    onChange={(e) => setIncomeForm({ ...incomeForm, receiptNumber: e.target.value })}
-                    required
-                  />
-                </div>
 
-                <div className={styles.fg}>
-                  <label>Date *</label>
-                  <input
-                    type="date"
-                    value={incomeForm.date}
-                    onChange={(e) => setIncomeForm({ ...incomeForm, date: e.target.value })}
-                    required
-                  />
-                </div>
 
-                <div className={styles.fg}>
-                  <label>Category *</label>
-                  <select
-                    value={incomeForm.category}
-                    onChange={(e) => setIncomeForm({ ...incomeForm, category: e.target.value })}
-                    required
-                  >
-                    {INCOME_CATEGORIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.fg}>
-                  <label>Amount (INR) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={incomeForm.amount}
-                    onChange={(e) => setIncomeForm({ ...incomeForm, amount: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className={styles.fg}>
-                  <label>Source / Depositor *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Registrant name, Sponsor"
-                    value={incomeForm.source}
-                    onChange={(e) => setIncomeForm({ ...incomeForm, source: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className={`${styles.fg} ${styles.fgFull}`}>
-                  <label>Description *</label>
-                  <textarea
-                    value={incomeForm.description}
-                    onChange={(e) => setIncomeForm({ ...incomeForm, description: e.target.value })}
-                    required
-                    rows={2}
-                  />
-                </div>
-
-                <div className={`${styles.fg} ${styles.fgFull}`}>
-                  <label>Remarks</label>
-                  <textarea
-                    value={incomeForm.remarks}
-                    onChange={(e) => setIncomeForm({ ...incomeForm, remarks: e.target.value })}
-                    rows={2}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.modalActions}>
-                <button type="button" onClick={() => setShowAddIncomeModal(false)} className={styles.modalCancelBtn} disabled={isSubmitting}>
-                  Cancel
-                </button>
-                <button type="submit" className={styles.modalConfirmBtn} disabled={isSubmitting}>
-                  {isSubmitting ? "Posting..." : "Post Income"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showAddExpenseModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h3>Add Event Expense Posting</h3>
-              <button onClick={() => setShowAddExpenseModal(false)} className={styles.modalCloseBtn} disabled={isSubmitting}>
-                <FiX size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleAddExpenseSubmit} className={styles.modalForm}>
-              <div className={styles.modalGrid}>
-                <div className={styles.fg}>
-                  <label>Payment Number *</label>
-                  <input
-                    type="text"
-                    value={expenseForm.paymentNumber}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, paymentNumber: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className={styles.fg}>
-                  <label>Date *</label>
-                  <input
-                    type="date"
-                    value={expenseForm.date}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, paymentNumber: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className={styles.fg}>
-                  <label>Category *</label>
-                  <select
-                    value={expenseForm.category}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                    required
-                  >
-                    {EXPENSE_CATEGORIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.fg}>
-                  <label>Amount (INR) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={expenseForm.amount}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className={styles.fg}>
-                  <label>Paid To / Vendor *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Vendor name, Member reimbursed"
-                    value={expenseForm.paidTo}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, paidTo: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className={`${styles.fg} ${styles.fgFull}`}>
-                  <label>Description *</label>
-                  <textarea
-                    value={expenseForm.description}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
-                    required
-                    rows={2}
-                  />
-                </div>
-
-                <div className={`${styles.fg} ${styles.fgFull}`}>
-                  <label>Remarks</label>
-                  <textarea
-                    value={expenseForm.remarks}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, remarks: e.target.value })}
-                    rows={2}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.modalActions}>
-                <button type="button" onClick={() => setShowAddExpenseModal(false)} className={styles.modalCancelBtn} disabled={isSubmitting}>
-                  Cancel
-                </button>
-                <button type="submit" className={styles.modalConfirmBtn} disabled={isSubmitting}>
-                  {isSubmitting ? "Posting..." : "Post Expense"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {showAddNoteModal && (
         <div className={styles.modalOverlay}>

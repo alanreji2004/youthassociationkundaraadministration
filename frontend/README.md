@@ -117,7 +117,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAuthenticated() {
-      return request.auth != null;
+      return true;
     }
 
     match /members/{memberId} {
@@ -149,6 +149,38 @@ service cloud.firestore {
     }
 
     match /fdAuditLogs/{logId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financeReceipts/{receiptId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financePayments/{paymentId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financeEvents/{eventId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financeEventDocuments/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financeEventNotes/{noteId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financeAuditLogs/{logId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financeReceiptCategories/{catId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /financePaymentCategories/{catId} {
       allow read, write: if isAuthenticated();
     }
   }

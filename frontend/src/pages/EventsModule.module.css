@@ -82,6 +82,12 @@
 .filterGroup {
   display: flex;
   gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filterGroup::-webkit-scrollbar {
+  display: none;
 }
 
 .filterTab {

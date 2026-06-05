@@ -16,6 +16,7 @@ const FinancialDashboard = () => {
   const [payments, setPayments] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [receiptCategories, setReceiptCategories] = useState([]);
 
   useEffect(() => {
     const unsubReceipts = financeService.subscribeReceipts((data) => {
@@ -28,11 +29,15 @@ const FinancialDashboard = () => {
       setEvents(data);
       setLoading(false);
     });
+    const unsubCats = financeService.subscribeReceiptCategories((data) => {
+      setReceiptCategories(data);
+    });
 
     return () => {
       unsubReceipts();
       unsubPayments();
       unsubEvents();
+      unsubCats();
     };
   }, []);
 
@@ -41,37 +46,20 @@ const FinancialDashboard = () => {
     const totalPay = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
     const balance = totalRec - totalPay;
 
-    const donations = receipts
-      .filter(r => r.category === "Donation")
-      .reduce((sum, r) => sum + (r.amount || 0), 0);
-
-    const eventCol = receipts
-      .filter(r => r.category === "Event Collection")
-      .reduce((sum, r) => sum + (r.amount || 0), 0);
-
-    const sponsorships = receipts
-      .filter(r => r.category === "Sponsorship")
-      .reduce((sum, r) => sum + (r.amount || 0), 0);
-
-    const fundraising = receipts
-      .filter(r => r.category === "Fundraising")
-      .reduce((sum, r) => sum + (r.amount || 0), 0);
-
-    const otherIncome = receipts
-      .filter(r => r.category === "Other Income")
-      .reduce((sum, r) => sum + (r.amount || 0), 0);
+    const categorySums = {};
+    receiptCategories.forEach(cat => {
+      categorySums[cat.name] = receipts
+        .filter(r => !r.eventId && r.category === cat.name)
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
+    });
 
     return {
       totalReceipts: totalRec,
       totalPayments: totalPay,
       netBalance: balance,
-      donations,
-      eventCollections: eventCol,
-      sponsorships,
-      fundraising,
-      otherIncome
+      categorySums
     };
-  }, [receipts, payments]);
+  }, [receipts, payments, receiptCategories]);
 
   const recentTransactions = useMemo(() => {
     const combined = [
@@ -99,14 +87,8 @@ const FinancialDashboard = () => {
   };
 
   const getMaxCategoryVal = useMemo(() => {
-    return Math.max(
-      stats.donations,
-      stats.sponsorships,
-      stats.eventCollections,
-      stats.fundraising,
-      stats.otherIncome,
-      1
-    );
+    const values = Object.values(stats.categorySums);
+    return Math.max(...values, 1);
   }, [stats]);
 
   if (loading) {
@@ -153,70 +135,36 @@ const FinancialDashboard = () => {
         <div className={styles.chartCard}>
           <h3 className={styles.cardTitle}>Inflow Breakdown</h3>
           <div className={styles.barList}>
-            <div className={styles.barRow}>
-              <div className={styles.barInfo}>
-                <span className={styles.barLabel}>Donations</span>
-                <span className={styles.barVal}>{formatCurrency(stats.donations)}</span>
+            {receiptCategories.map((cat, idx) => {
+              const val = stats.categorySums[cat.name] || 0;
+              const fillColors = [
+                styles.fillDonation,
+                styles.fillSponsorship,
+                styles.fillEvent,
+                styles.fillFundraising,
+                styles.fillOther
+              ];
+              const fillColorClass = fillColors[idx % fillColors.length];
+              return (
+                <div key={cat.id} className={styles.barRow}>
+                  <div className={styles.barInfo}>
+                    <span className={styles.barLabel}>{cat.name}</span>
+                    <span className={styles.barVal}>{formatCurrency(val)}</span>
+                  </div>
+                  <div className={styles.barTrack}>
+                    <div 
+                      className={`${styles.barFill} ${fillColorClass}`} 
+                      style={{ width: `${(val / getMaxCategoryVal) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            {receiptCategories.length === 0 && (
+              <div style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "14px", padding: "20px 0" }}>
+                No receipt categories defined.
               </div>
-              <div className={styles.barTrack}>
-                <div 
-                  className={`${styles.barFill} ${styles.fillDonation}`} 
-                  style={{ width: `${(stats.donations / getMaxCategoryVal) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.barRow}>
-              <div className={styles.barInfo}>
-                <span className={styles.barLabel}>Sponsorships</span>
-                <span className={styles.barVal}>{formatCurrency(stats.sponsorships)}</span>
-              </div>
-              <div className={styles.barTrack}>
-                <div 
-                  className={`${styles.barFill} ${styles.fillSponsorship}`} 
-                  style={{ width: `${(stats.sponsorships / getMaxCategoryVal) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.barRow}>
-              <div className={styles.barInfo}>
-                <span className={styles.barLabel}>Event Collections</span>
-                <span className={styles.barVal}>{formatCurrency(stats.eventCollections)}</span>
-              </div>
-              <div className={styles.barTrack}>
-                <div 
-                  className={`${styles.barFill} ${styles.fillEvent}`} 
-                  style={{ width: `${(stats.eventCollections / getMaxCategoryVal) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.barRow}>
-              <div className={styles.barInfo}>
-                <span className={styles.barLabel}>Fundraising</span>
-                <span className={styles.barVal}>{formatCurrency(stats.fundraising)}</span>
-              </div>
-              <div className={styles.barTrack}>
-                <div 
-                  className={`${styles.barFill} ${styles.fillFundraising}`} 
-                  style={{ width: `${(stats.fundraising / getMaxCategoryVal) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.barRow}>
-              <div className={styles.barInfo}>
-                <span className={styles.barLabel}>Other Income</span>
-                <span className={styles.barVal}>{formatCurrency(stats.otherIncome)}</span>
-              </div>
-              <div className={styles.barTrack}>
-                <div 
-                  className={`${styles.barFill} ${styles.fillOther}`} 
-                  style={{ width: `${(stats.otherIncome / getMaxCategoryVal) * 100}%` }}
-                />
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
