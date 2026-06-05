@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { 
   FiArrowLeft, 
-  FiCalendar, 
-  FiCheckCircle, 
   FiAlertCircle, 
-  FiClock, 
   FiFileText, 
-  FiTrendingUp, 
   FiDownload, 
   FiPrinter, 
-  FiPaperclip, 
   FiX, 
+  FiPlus,
   FiEdit3,
   FiCornerRightDown,
   FiMaximize2
@@ -35,17 +31,17 @@ const FixedDepositDetails = () => {
 
   const [activeTab, setActiveTab] = useState("transactions");
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const actionsMenuRef = useRef(null);
 
   const [showAddTxModal, setShowAddTxModal] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
-  const [showUploadDocModal, setShowUploadDocModal] = useState(false);
   const [showRenewModal, setShowRenewModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCloseConfirmModal, setShowCloseConfirmModal] = useState(false);
 
   const [txForm, setTxForm] = useState({ date: "", type: "Interest Credit", amount: "", description: "", referenceNumber: "" });
   const [noteForm, setNoteForm] = useState({ content: "" });
-  const [docForm, setDocForm] = useState({ type: "FD Receipt", name: "", url: "" });
   const [renewForm, setRenewForm] = useState({ fdNumber: "", bankName: "", branch: "", principalAmount: "", interestRate: "", depositDate: "", maturityDate: "", maturityAmount: "", remarks: "" });
   const [closeForm, setCloseForm] = useState({ closureDate: "", finalAmountReceived: "", remarks: "" });
   const [editForm, setEditForm] = useState({ bankName: "", branch: "", principalAmount: "", interestRate: "", depositDate: "", maturityDate: "", maturityAmount: "", remarks: "" });
@@ -53,7 +49,9 @@ const FixedDepositDetails = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    Promise.resolve().then(() => {
+      setLoading(true);
+    });
     const unsubFds = fdService.subscribeFds((data) => {
       setFds(data);
       setLoading(false);
@@ -77,6 +75,18 @@ const FixedDepositDetails = () => {
       unsubAudits();
     };
   }, [fdId]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target)) {
+        setShowActionsMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const fd = useMemo(() => {
     return fds.find((f) => f.id === fdId);
@@ -184,15 +194,7 @@ const FixedDepositDetails = () => {
     setShowActionsMenu(false);
   };
 
-  const handleOpenUploadDocModal = () => {
-    setDocForm({
-      type: "FD Receipt",
-      name: "",
-      url: ""
-    });
-    setShowUploadDocModal(true);
-    setShowActionsMenu(false);
-  };
+
 
   const handleOpenAddNoteModal = () => {
     setNoteForm({ content: "" });
@@ -237,16 +239,21 @@ const FixedDepositDetails = () => {
     }
   };
 
-  const handleCloseSubmit = async (e) => {
+  const handleCloseSubmit = (e) => {
     e.preventDefault();
     if (!closeForm.closureDate || parseFloat(closeForm.finalAmountReceived) <= 0) {
       toast.error("Please provide valid closure date and final receipt amount.");
       return;
     }
+    setShowCloseConfirmModal(true);
+  };
+
+  const executeClose = async () => {
     setIsSubmitting(true);
     try {
       await fdService.closeFixedDeposit(fdId, closeForm);
       toast.success("Fixed Deposit marked as Closed.");
+      setShowCloseConfirmModal(false);
       setShowCloseModal(false);
     } catch (err) {
       toast.error(err.message);
@@ -291,42 +298,7 @@ const FixedDepositDetails = () => {
     }
   };
 
-  const handleDocFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const fileType = file.name.split(".").pop().toLowerCase();
-    if (!["pdf", "jpg", "jpeg", "png"].includes(fileType)) {
-      toast.error("Unsupported file format.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setDocForm((prev) => ({
-        ...prev,
-        name: file.name,
-        url: reader.result
-      }));
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const handleUploadDocSubmit = async (e) => {
-    e.preventDefault();
-    if (!docForm.name || !docForm.url) {
-      toast.error("Please upload a file.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await fdService.uploadFdDocument(fdId, docForm);
-      toast.success("Document attached.");
-      setShowUploadDocModal(false);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handlePrint = () => {
     window.print();
@@ -400,8 +372,9 @@ const FixedDepositDetails = () => {
         </div>
 
         <div className={styles.topRight}>
-          <div className={styles.actionsDropdownWrapper}>
+          <div ref={actionsMenuRef} className={styles.actionsDropdownWrapper}>
             <button
+              type="button"
               onClick={() => setShowActionsMenu(!showActionsMenu)}
               className={styles.actionsBtn}
             >
@@ -410,41 +383,48 @@ const FixedDepositDetails = () => {
             </button>
             {showActionsMenu && (
               <div className={styles.dropdownMenu}>
-                <button onClick={handleOpenEditModal} className={styles.dropdownItem}>
+                <button type="button" onClick={handleOpenEditModal} className={styles.dropdownItem}>
                   <FiEdit3 className={styles.itemIcon} />
                   <span>Edit FD Terms</span>
                 </button>
-                {fd.status !== "Renewed" && fd.status !== "Closed" && (
-                  <>
-                    <button onClick={handleOpenRenewModal} className={styles.dropdownItem}>
-                      <FiCornerRightDown className={styles.itemIcon} />
-                      <span>Renew FD</span>
-                    </button>
-                    <button onClick={handleOpenCloseModal} className={styles.dropdownItem}>
-                      <FiX className={styles.itemIcon} style={{ color: "var(--color-error)" }} />
-                      <span style={{ color: "var(--color-error)" }}>Close FD</span>
-                    </button>
-                  </>
-                )}
+                <button 
+                  type="button" 
+                  onClick={handleOpenRenewModal} 
+                  className={styles.dropdownItem}
+                  disabled={fd.status !== "Matured"}
+                  title={fd.status !== "Matured" ? "Renew is only active when the Fixed Deposit is matured" : ""}
+                >
+                  <FiCornerRightDown className={styles.itemIcon} />
+                  <span>Renew FD</span>
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleOpenCloseModal} 
+                  className={styles.dropdownItem}
+                  disabled={fd.status === "Closed" || fd.status === "Renewed"}
+                  title={fd.status === "Closed" || fd.status === "Renewed" ? "This Fixed Deposit is already closed or renewed" : ""}
+                >
+                  <FiX 
+                    className={styles.itemIcon} 
+                    style={{ color: fd.status === "Closed" || fd.status === "Renewed" ? "var(--text-muted)" : "var(--color-error)" }} 
+                  />
+                  <span style={{ color: fd.status === "Closed" || fd.status === "Renewed" ? "var(--text-muted)" : "var(--color-error)" }}>Close FD</span>
+                </button>
                 <div className={styles.menuDivider} />
-                <button onClick={handleOpenAddTxModal} className={styles.dropdownItem}>
+                <button type="button" onClick={handleOpenAddTxModal} className={styles.dropdownItem}>
                   <FiPlus className={styles.itemIcon} />
                   <span>Add Transaction</span>
                 </button>
-                <button onClick={handleOpenAddNoteModal} className={styles.dropdownItem}>
+                <button type="button" onClick={handleOpenAddNoteModal} className={styles.dropdownItem}>
                   <FiFileText className={styles.itemIcon} />
                   <span>Add Note</span>
                 </button>
-                <button onClick={handleOpenUploadDocModal} className={styles.dropdownItem}>
-                  <FiPaperclip className={styles.itemIcon} />
-                  <span>Upload Document</span>
-                </button>
                 <div className={styles.menuDivider} />
-                <button onClick={handlePrint} className={styles.dropdownItem}>
+                <button type="button" onClick={handlePrint} className={styles.dropdownItem}>
                   <FiPrinter className={styles.itemIcon} />
                   <span>Print FD Summary</span>
                 </button>
-                <button onClick={handleExportCSV} className={styles.dropdownItem}>
+                <button type="button" onClick={handleExportCSV} className={styles.dropdownItem}>
                   <FiDownload className={styles.itemIcon} />
                   <span>Export FD History</span>
                 </button>
@@ -544,7 +524,7 @@ const FixedDepositDetails = () => {
               <div className={styles.emptyTimeline}>No logged operations.</div>
             ) : (
               <div className={styles.timelineTrack}>
-                {events.map((ev, index) => (
+                {events.map((ev) => (
                   <div key={ev.id} className={styles.timelineItem}>
                     <div className={styles.timelineNode}>
                       <span className={styles.nodeIcon} />
@@ -931,7 +911,7 @@ const FixedDepositDetails = () => {
                   />
                 </div>
                 <div className={styles.fg}>
-                  <label>New Principal Amount (₹)</label>
+                  <label>New Principal Amount (₹) *</label>
                   <input
                     type="number"
                     step="any"
@@ -941,7 +921,7 @@ const FixedDepositDetails = () => {
                   />
                 </div>
                 <div className={styles.fg}>
-                  <label>Interest Rate (% p.a.)</label>
+                  <label>Interest Rate (% p.a.) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -951,7 +931,7 @@ const FixedDepositDetails = () => {
                   />
                 </div>
                 <div className={styles.fg}>
-                  <label>Deposit / Rollover Date</label>
+                  <label>Deposit / Rollover Date *</label>
                   <input
                     type="date"
                     value={renewForm.depositDate}
@@ -960,7 +940,7 @@ const FixedDepositDetails = () => {
                   />
                 </div>
                 <div className={styles.fg}>
-                  <label>Maturity Date</label>
+                  <label>Maturity Date *</label>
                   <input
                     type="date"
                     value={renewForm.maturityDate}
@@ -969,7 +949,7 @@ const FixedDepositDetails = () => {
                   />
                 </div>
                 <div className={styles.fg}>
-                  <label>Maturity Amount (₹)</label>
+                  <label>Maturity Amount (₹) *</label>
                   <input
                     type="number"
                     step="any"
@@ -1045,10 +1025,36 @@ const FixedDepositDetails = () => {
                   Cancel
                 </button>
                 <button type="submit" className={`${styles.modalConfirmBtn} ${styles.modalDangerBtn}`} disabled={isSubmitting}>
-                  {isSubmitting ? <span className={styles.spinner} /> : "Liquidate Certificate"}
+                  Liquidate Certificate
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showCloseConfirmModal && (
+        <div className={styles.modalOverlay} style={{ zIndex: 1100 }}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Confirm Liquidation</h3>
+              <button type="button" onClick={() => setShowCloseConfirmModal(false)} className={styles.modalCloseBtn}>
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody} style={{ padding: "24px" }}>
+              <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.5", margin: 0 }}>
+                Are you sure you want to close this Fixed Deposit certificate? The status will be set to <strong>Closed</strong> and a final liquidation transaction for <strong>{formatCurrency(closeForm.finalAmountReceived)}</strong> will be credited on <strong>{closeForm.closureDate}</strong>. This action is irreversible.
+              </p>
+            </div>
+            <div className={styles.modalActions}>
+              <button type="button" onClick={() => setShowCloseConfirmModal(false)} className={styles.modalCancelBtn}>
+                Cancel
+              </button>
+              <button type="button" onClick={executeClose} className={`${styles.modalConfirmBtn} ${styles.modalDangerBtn}`} disabled={isSubmitting}>
+                {isSubmitting ? <span className={styles.spinner} /> : "Confirm & Liquidate"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1168,59 +1174,7 @@ const FixedDepositDetails = () => {
         </div>
       )}
 
-      {showUploadDocModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h3>Attach Supporting File</h3>
-              <button onClick={() => setShowUploadDocModal(false)} className={styles.modalCloseBtn}>
-                <FiX size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleUploadDocSubmit} className={styles.modalForm}>
-              <div className={styles.modalGrid}>
-                <div className={styles.fg}>
-                  <label>Document Category</label>
-                  <select
-                    value={docForm.type}
-                    onChange={(e) => setDocForm({ ...docForm, type: e.target.value })}
-                    required
-                  >
-                    <option value="FD Receipt">FD Receipt</option>
-                    <option value="Bank Letter">Bank Letter</option>
-                    <option value="Renewal Certificate">Renewal Certificate</option>
-                    <option value="Closure Certificate">Closure Certificate</option>
-                    <option value="Other Attachments">Other Attachments</option>
-                  </select>
-                </div>
-                <div className={styles.fg}>
-                  <label>File Upload (PDF, JPG, PNG)</label>
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={handleDocFileChange}
-                    required
-                  />
-                </div>
-                {docForm.name && (
-                  <div className={`${styles.fg} ${styles.fgFull}`}>
-                    <span className={styles.uploadInfoLabel}>Selected File:</span>
-                    <span className={styles.uploadInfoValue}>{docForm.name}</span>
-                  </div>
-                )}
-              </div>
-              <div className={styles.modalActions}>
-                <button type="button" onClick={() => setShowUploadDocModal(false)} className={styles.modalCancelBtn}>
-                  Cancel
-                </button>
-                <button type="submit" className={styles.modalConfirmBtn} disabled={isSubmitting}>
-                  {isSubmitting ? <span className={styles.spinner} /> : "Upload File"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

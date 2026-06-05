@@ -3,11 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { 
   FiPlus, 
   FiSearch, 
-  FiFolder, 
-  FiTrendingUp, 
-  FiCalendar, 
-  FiAlertCircle, 
-  FiCheckCircle, 
   FiChevronLeft, 
   FiChevronRight, 
   FiArrowUp, 

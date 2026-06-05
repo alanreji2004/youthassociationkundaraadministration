@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiX } from "react-icons/fi";
 import { fdService } from "../services/fdService";
 import { useToast } from "../components/Toast";
 import styles from "./AddFixedDeposit.module.css";
@@ -22,6 +22,7 @@ const AddFixedDeposit = () => {
 
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,7 +69,7 @@ const AddFixedDeposit = () => {
     return errors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
@@ -76,11 +77,15 @@ const AddFixedDeposit = () => {
       toast.error("Please correct the form validation errors.");
       return;
     }
+    setShowConfirmModal(true);
+  };
 
+  const executeSave = async () => {
     setIsSubmitting(true);
     try {
       await fdService.addFixedDeposit(formData);
       toast.success("Fixed Deposit added successfully!");
+      setShowConfirmModal(false);
       navigate("/financial-accounts/fixed-deposits");
     } catch (err) {
       console.error(err);
@@ -88,6 +93,14 @@ const AddFixedDeposit = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const formatCurrency = (val) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2
+    }).format(parseFloat(val) || 0);
   };
 
   return (
@@ -237,12 +250,67 @@ const AddFixedDeposit = () => {
           <button
             type="submit"
             className={`${styles.btn} ${styles.btnPrimary}`}
-            disabled={isSubmitting}
           >
-            {isSubmitting ? <span className={styles.spinner} /> : "Save Fixed Deposit"}
+            Save Fixed Deposit
           </button>
         </div>
       </form>
+
+      {showConfirmModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Confirm Fixed Deposit Creation</h3>
+              <button type="button" onClick={() => setShowConfirmModal(false)} className={styles.modalCloseBtn}>
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.confirmIntro}>Please verify the entered investment parameters before saving to database registries:</p>
+              <table className={styles.confirmTable}>
+                <tbody>
+                  <tr>
+                    <th>FD Number</th>
+                    <td>{formData.fdNumber}</td>
+                  </tr>
+                  <tr>
+                    <th>Bank & Branch</th>
+                    <td>{formData.bankName} ({formData.branch})</td>
+                  </tr>
+                  <tr>
+                    <th>Principal Amount</th>
+                    <td>{formatCurrency(formData.principalAmount)}</td>
+                  </tr>
+                  <tr>
+                    <th>Interest Rate</th>
+                    <td>{formData.interestRate}% p.a.</td>
+                  </tr>
+                  <tr>
+                    <th>Maturity Amount</th>
+                    <td>{formatCurrency(formData.maturityAmount)}</td>
+                  </tr>
+                  <tr>
+                    <th>Deposit Date</th>
+                    <td>{formData.depositDate}</td>
+                  </tr>
+                  <tr>
+                    <th>Maturity Date</th>
+                    <td>{formData.maturityDate}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className={styles.modalActions}>
+              <button type="button" onClick={() => setShowConfirmModal(false)} className={styles.modalCancelBtn}>
+                Cancel & Edit
+              </button>
+              <button type="button" onClick={executeSave} className={styles.modalConfirmBtn} disabled={isSubmitting}>
+                {isSubmitting ? <span className={styles.spinner} /> : "Confirm & Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

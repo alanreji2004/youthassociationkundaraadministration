@@ -4,10 +4,7 @@ import {
   runTransaction,
   query,
   orderBy,
-  onSnapshot,
-  updateDoc,
-  getDocs,
-  writeBatch
+  onSnapshot
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 
@@ -19,7 +16,6 @@ const LOCAL_FD_EV_KEY = "smya_fd_ev_list";
 const LOCAL_FD_NT_KEY = "smya_fd_nt_list";
 const LOCAL_FD_DOC_KEY = "smya_fd_doc_list";
 const LOCAL_FD_AUDIT_KEY = "smya_fd_audit_list";
-const LOCAL_FD_COUNTER_KEY = "smya_fd_sequence_counter";
 
 const fdSubscribers = new Set();
 const txSubscribers = new Map();
@@ -284,7 +280,6 @@ export const fdService = {
           };
 
           fds.push(newFd);
-          localStorage.setItem(LOCAL_FD_COUNTER_KEY, nextVal.toString());
           saveLocalData(LOCAL_FDS_KEY, fds);
 
           const events = getLocalData(LOCAL_FD_EV_KEY);
@@ -388,7 +383,7 @@ export const fdService = {
       return result;
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to create Fixed Deposit: ${err.message}`);
+      throw new Error(`Failed to create Fixed Deposit: ${err.message}`, { cause: err });
     }
   },
 
@@ -477,7 +472,7 @@ export const fdService = {
       return snap;
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to update Fixed Deposit: ${err.message}`);
+      throw new Error(`Failed to update Fixed Deposit: ${err.message}`, { cause: err });
     }
   },
 
@@ -519,7 +514,6 @@ export const fdService = {
           };
 
           fds.push(newFd);
-          localStorage.setItem(LOCAL_FD_COUNTER_KEY, nextVal.toString());
           saveLocalData(LOCAL_FDS_KEY, fds);
 
           const events = getLocalData(LOCAL_FD_EV_KEY);
@@ -690,7 +684,7 @@ export const fdService = {
       return result;
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to renew Fixed Deposit: ${err.message}`);
+      throw new Error(`Failed to renew Fixed Deposit: ${err.message}`, { cause: err });
     }
   },
 
@@ -805,7 +799,7 @@ export const fdService = {
       return snap;
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to close Fixed Deposit: ${err.message}`);
+      throw new Error(`Failed to close Fixed Deposit: ${err.message}`, { cause: err });
     }
   },
 
@@ -881,13 +875,11 @@ export const fdService = {
       return { id: ref.id, ...data };
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to add transaction: ${err.message}`);
+      throw new Error(`Failed to add transaction: ${err.message}`, { cause: err });
     }
   },
 
   addFdEvent: async (fdId, evData) => {
-    const creator = auth.currentUser?.displayName || "Administrator";
-
     if (!isFirebaseConfigured) {
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -928,7 +920,7 @@ export const fdService = {
       return { id: ref.id, ...data };
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to record event: ${err.message}`);
+      throw new Error(`Failed to record event: ${err.message}`, { cause: err });
     }
   },
 
@@ -993,7 +985,7 @@ export const fdService = {
       return { id: ref.id, ...data };
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to save note: ${err.message}`);
+      throw new Error(`Failed to save note: ${err.message}`, { cause: err });
     }
   },
 
@@ -1062,7 +1054,7 @@ export const fdService = {
       return { id: ref.id, ...data };
     } catch (err) {
       console.error(err);
-      throw new Error(`Failed to upload document: ${err.message}`);
+      throw new Error(`Failed to upload document: ${err.message}`, { cause: err });
     }
   }
 };

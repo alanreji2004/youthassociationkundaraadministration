@@ -186,6 +186,18 @@
   color: var(--text-primary);
 }
 
+.dropdownItem:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: none;
+  color: var(--text-muted) !important;
+}
+
+.dropdownItem:disabled:hover {
+  background: none;
+  color: var(--text-muted) !important;
+}
+
 .itemIcon {
   font-size: 15px;
 }
@@ -266,12 +278,18 @@
 
 .summaryValuesGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: var(--space-4);
   background-color: var(--bg-app);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .summaryValuesGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .summaryValueBlock {
@@ -913,7 +931,7 @@
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   .summaryGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1020,5 +1038,31 @@
     background-color: transparent !important;
     border: 1px solid #000 !important;
     color: #000 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .topBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
+  }
+  .topLeft {
+    width: 100%;
+  }
+  .topRight {
+    width: 100%;
+  }
+  .actionsDropdownWrapper {
+    width: 100%;
+  }
+  .actionsBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .dropdownMenu {
+    width: 100%;
+    left: 0;
+    right: 0;
   }
 }
