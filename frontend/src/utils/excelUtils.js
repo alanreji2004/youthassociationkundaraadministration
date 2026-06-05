@@ -95,8 +95,11 @@ export const downloadImportTemplate = () => {
  * Exports all member data to XLSX format.
  */
 export const exportMembersToExcel = (members) => {
+  // Sort copy of members by serialNumber ascending for the Excel sheet
+  const sortedMembers = [...members].sort((a, b) => a.serialNumber - b.serialNumber);
+
   // Map members data to expected excel headers
-  const data = members.map((member) => ({
+  const data = sortedMembers.map((member) => ({
     "Serial Number": member.serialNumber,
     "Name": member.name,
     "Address": member.address,
