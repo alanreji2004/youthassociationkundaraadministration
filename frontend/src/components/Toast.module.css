@@ -90,7 +90,7 @@
   }
 }
 
-/* Adjustments for smaller devices */
+
 @media (max-width: 480px) {
   .container {
     top: 16px;

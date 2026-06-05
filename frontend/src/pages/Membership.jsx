@@ -25,27 +25,27 @@ const Membership = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Search & Filtering State
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [bloodFilter, setBloodFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); // Default to empty (all)
+  const [statusFilter, setStatusFilter] = useState(""); 
 
-  // Sorting State
+  
   const [sortConfig, setSortConfig] = useState({
     key: "serialNumber",
-    direction: "desc" // Default to highest serial number first
+    direction: "desc" 
   });
 
-  // Pagination State
+  
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Wiping Registry Double Confirmation State
+  
   const [isDeleteModal1Open, setIsDeleteModal1Open] = useState(false);
   const [isDeleteModal2Open, setIsDeleteModal2Open] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Subscribe to real-time member data from Firestore
+  
   useEffect(() => {
     const unsubscribe = memberService.subscribeMembers(
       (data) => {
@@ -61,15 +61,15 @@ const Membership = () => {
     return () => unsubscribe();
   }, [toast]);
 
-  // Reset pagination on search or filter change
+  
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, genderFilter, bloodFilter, statusFilter]);
 
-  // Filter & Search Logic
+  
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
-      // 1. Search Query Match
+      
       const query = searchQuery.trim().toLowerCase();
       const matchesSearch = !query || 
         member.name?.toLowerCase().includes(query) ||
@@ -79,13 +79,13 @@ const Membership = () => {
         member.remarks?.toLowerCase().includes(query) ||
         String(member.serialNumber).includes(query);
 
-      // 2. Gender Match
+      
       const matchesGender = !genderFilter || member.gender === genderFilter;
 
-      // 3. Blood Group Match
+      
       const matchesBlood = !bloodFilter || member.bloodGroup === bloodFilter;
 
-      // 4. Status Match (Defaults missing to Active)
+      
       const memberStatus = member.status || "Active";
       const matchesStatus = !statusFilter || memberStatus === statusFilter;
 
@@ -93,7 +93,7 @@ const Membership = () => {
     });
   }, [members, searchQuery, genderFilter, bloodFilter, statusFilter]);
 
-  // Sorting Logic
+  
   const sortedMembers = useMemo(() => {
     const sortableItems = [...filteredMembers];
     if (sortConfig.key) {
@@ -101,7 +101,7 @@ const Membership = () => {
         let valA = a[sortConfig.key] || "";
         let valB = b[sortConfig.key] || "";
 
-        // Format names/status to lowercase for alphabetic sorting
+        
         if (typeof valA === "string") valA = valA.toLowerCase();
         if (typeof valB === "string") valB = valB.toLowerCase();
 
@@ -117,7 +117,7 @@ const Membership = () => {
     return sortableItems;
   }, [filteredMembers, sortConfig]);
 
-  // Pagination Logic
+  
   const paginatedMembers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return sortedMembers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -146,7 +146,7 @@ const Membership = () => {
     }
   };
 
-  // Delete all members execution handler
+  
   const handleDeleteAllConfirm = async (enteredPassword) => {
     if (!enteredPassword) {
       toast.error("Password is required to confirm database reset.");
@@ -177,7 +177,7 @@ const Membership = () => {
 
   return (
     <div>
-      {/* Header Area */}
+      
       <div className={styles.headerArea}>
         <div className={styles.titleArea}>
           <h1 className={styles.title}>Membership Management</h1>
@@ -202,7 +202,7 @@ const Membership = () => {
         </div>
       </div>
 
-      {/* Controls Bar (Search & Filter inputs) */}
+      
       <div className={styles.controlsBar}>
         <div className={styles.searchWrapper}>
           <FiSearch className={styles.searchIcon} />
@@ -262,10 +262,10 @@ const Membership = () => {
         </div>
       </div>
 
-      {/* Table Section */}
+      
       <div className={styles.tableContainer}>
         {loading ? (
-          // Skeleton Loader State
+          
           <div className={styles.tableResponsive}>
             <table className={styles.table}>
               <thead className={styles.thead}>
@@ -296,7 +296,7 @@ const Membership = () => {
             </table>
           </div>
         ) : sortedMembers.length === 0 ? (
-          // Empty State
+          
           <div className={styles.emptyState}>
             <FiSlash className={styles.emptyIcon} />
             <h3 className={styles.emptyStateTitle}>No Members Found</h3>
@@ -313,7 +313,7 @@ const Membership = () => {
             )}
           </div>
         ) : (
-          // Active Data Table State
+          
           <>
             <div className={styles.tableResponsive}>
               <table className={styles.table}>
@@ -416,7 +416,7 @@ const Membership = () => {
               </table>
             </div>
 
-            {/* Pagination Controls */}
+            
             <div className={styles.pagination}>
               <span className={styles.paginationInfo}>
                 Showing <strong>{((currentPage - 1) * ITEMS_PER_PAGE) + 1}</strong> to{" "}
@@ -452,7 +452,7 @@ const Membership = () => {
         )}
       </div>
 
-      {/* DANGER ACTION ZONE (Only visible when authenticated and members exist) */}
+      
       {!loading && members.length > 0 && (
         <div className={styles.dangerZone}>
           <div className={styles.dangerZoneHeader}>
@@ -473,7 +473,7 @@ const Membership = () => {
         </div>
       )}
 
-      {/* Wipe Database Modal 1 (First confirmation) */}
+      
       <ConfirmationModal
         isOpen={isDeleteModal1Open}
         title="Wipe Database Registry?"
@@ -488,7 +488,7 @@ const Membership = () => {
         isDanger={true}
       />
 
-      {/* Wipe Database Modal 2 (Second final confirmation with password check) */}
+      
       <ConfirmationModal
         isOpen={isDeleteModal2Open}
         title="FINAL WARNING: Wipe Member Database?"

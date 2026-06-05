@@ -40,7 +40,7 @@
   gap: var(--space-8);
 }
 
-/* Search Lookup Styling */
+
 .lookupCard {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -140,7 +140,7 @@
   text-align: center;
 }
 
-/* Edit Card Layout */
+
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -173,7 +173,7 @@
   margin: 0;
 }
 
-/* Status Badges */
+
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -210,7 +210,7 @@
   background-color: #4b5563;
 }
 
-/* Form Styles */
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -280,7 +280,7 @@
   gap: var(--space-3);
 }
 
-/* Button Styling */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -364,7 +364,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Media Breakpoints */
+
 @media (min-width: 480px) {
   .formGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

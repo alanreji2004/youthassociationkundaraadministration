@@ -25,7 +25,7 @@ export const ToastProvider = ({ children }) => {
         toast.id === id ? { ...toast, exiting: true } : toast
       )
     );
-    // Wait for slide-out animation to complete before removing from state
+    
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, 200);

@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [isFallback, setIsFallback] = useState(authService.isFallbackMode());
 
   useEffect(() => {
-    // Keep fallback mode synced in case configuration changes dynamically (optional)
+    
     setIsFallback(authService.isFallbackMode());
 
     const unsubscribe = authService.onAuthStateChange((firebaseUser) => {

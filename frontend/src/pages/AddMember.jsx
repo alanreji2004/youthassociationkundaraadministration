@@ -22,7 +22,7 @@ const AddMember = () => {
   const toast = useToast();
   const fileInputRef = useRef(null);
 
-  // Single Member Form State
+  
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -35,13 +35,13 @@ const AddMember = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Bulk Import State
-  const [importData, setImportData] = useState(null); // { data, validCount, invalidCount, totalCount }
+  
+  const [importData, setImportData] = useState(null); 
   const [isImporting, setIsImporting] = useState(false);
   const [excelError, setExcelError] = useState("");
   const [dragActive, setDragActive] = useState(false);
 
-  // Counter State to calculate target S.No. dynamically
+  
   const [members, setMembers] = useState([]);
   const [currentCounter, setCurrentCounter] = useState(0);
 
@@ -63,7 +63,7 @@ const AddMember = () => {
     const row = importData.data[idx];
     if (!row.isValid) return "—";
     
-    // Count valid rows preceding this one
+    
     let validBefore = 0;
     for (let i = 0; i < idx; i++) {
       if (importData.data[i].isValid) {
@@ -73,17 +73,17 @@ const AddMember = () => {
     return `#${currentCounter + validBefore + 1}`;
   };
 
-  // Handle Form Input Change
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear validation error when field is typed in
+    
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  // Validate Single Member Form
+  
   const validateForm = () => {
     const errors = {};
     if (!formData.name.trim()) errors.name = "Name is required";
@@ -91,7 +91,7 @@ const AddMember = () => {
     if (!formData.gender) errors.gender = "Gender is required";
     if (!formData.dob) errors.dob = "Date of Birth is required";
     
-    // Mobile number regex validation
+    
     if (!formData.mobileNumber.trim()) {
       errors.mobileNumber = "Mobile number is required";
     } else {
@@ -105,7 +105,7 @@ const AddMember = () => {
     return errors;
   };
 
-  // Handle Single Member Submit
+  
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
@@ -128,7 +128,7 @@ const AddMember = () => {
     }
   };
 
-  // Handle Template download
+  
   const handleDownloadTemplate = () => {
     try {
       downloadImportTemplate();
@@ -138,7 +138,7 @@ const AddMember = () => {
     }
   };
 
-  // Handle Excel parsing
+  
   const handleExcelFile = async (file) => {
     setExcelError("");
     setImportData(null);
@@ -167,7 +167,7 @@ const AddMember = () => {
     }
   };
 
-  // Drag and Drop handlers
+  
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -194,7 +194,7 @@ const AddMember = () => {
     }
   };
 
-  // Confirm and Save Bulk Imports
+  
   const handleConfirmImport = async () => {
     if (!importData || importData.validCount === 0) {
       toast.error("There are no valid records to import.");
@@ -202,7 +202,7 @@ const AddMember = () => {
     }
 
     setIsImporting(true);
-    // Filter only valid records to send to service
+    
     const validRecords = importData.data.filter(row => row.isValid);
     
     try {
@@ -227,7 +227,7 @@ const AddMember = () => {
 
   return (
     <div className={styles.sectionsContainer}>
-      {/* Header Back Button */}
+      
       <div className={styles.header}>
         <Link to="/membership" className={styles.backBtn} aria-label="Go back to list">
           <FiArrowLeft size={18} />
@@ -240,7 +240,7 @@ const AddMember = () => {
         </div>
       </div>
 
-      {/* Section 1: Add Single Member Card */}
+      
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>Single Registry Form</h2>
         <p className={styles.cardSubtitle}>
@@ -249,7 +249,7 @@ const AddMember = () => {
 
         <form onSubmit={handleFormSubmit}>
           <div className={styles.formGrid}>
-            {/* Serial Number placeholder */}
+            
             <div className={styles.formGroup}>
               <label className={styles.label}>Serial Number</label>
               <input
@@ -260,7 +260,7 @@ const AddMember = () => {
               />
             </div>
 
-            {/* Name */}
+            
             <div className={styles.formGroup}>
               <label htmlFor="name" className={styles.label}>Full Name *</label>
               <input
@@ -276,7 +276,7 @@ const AddMember = () => {
               {formErrors.name && <span className={styles.errorText}>{formErrors.name}</span>}
             </div>
 
-            {/* Gender */}
+            
             <div className={styles.formGroup}>
               <label htmlFor="gender" className={styles.label}>Gender *</label>
               <select
@@ -295,7 +295,7 @@ const AddMember = () => {
               {formErrors.gender && <span className={styles.errorText}>{formErrors.gender}</span>}
             </div>
 
-            {/* DOB */}
+            
             <div className={styles.formGroup}>
               <label htmlFor="dob" className={styles.label}>Date of Birth *</label>
               <input
@@ -310,7 +310,7 @@ const AddMember = () => {
               {formErrors.dob && <span className={styles.errorText}>{formErrors.dob}</span>}
             </div>
 
-            {/* Mobile Number */}
+            
             <div className={styles.formGroup}>
               <label htmlFor="mobileNumber" className={styles.label}>Mobile Number *</label>
               <input
@@ -326,7 +326,7 @@ const AddMember = () => {
               {formErrors.mobileNumber && <span className={styles.errorText}>{formErrors.mobileNumber}</span>}
             </div>
 
-            {/* Blood Group */}
+            
             <div className={styles.formGroup}>
               <label htmlFor="bloodGroup" className={styles.label}>Blood Group *</label>
               <select
@@ -345,7 +345,7 @@ const AddMember = () => {
               {formErrors.bloodGroup && <span className={styles.errorText}>{formErrors.bloodGroup}</span>}
             </div>
 
-            {/* Address */}
+            
             <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
               <label htmlFor="address" className={styles.label}>Residential Address *</label>
               <textarea
@@ -362,7 +362,7 @@ const AddMember = () => {
               {formErrors.address && <span className={styles.errorText}>{formErrors.address}</span>}
             </div>
 
-            {/* Remarks */}
+            
             <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
               <label htmlFor="remarks" className={styles.label}>Remarks (Optional)</label>
               <input
@@ -396,7 +396,7 @@ const AddMember = () => {
         </form>
       </section>
 
-      {/* Section 2: Bulk Import Section */}
+      
       <section className={styles.card}>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "16px", marginBottom: "24px" }}>
           <div>
@@ -417,7 +417,7 @@ const AddMember = () => {
           </div>
         </div>
 
-        {/* Excel Import Dropzone */}
+        
         {!importData && (
           <div 
             className={styles.importZone}
@@ -456,10 +456,10 @@ const AddMember = () => {
           </div>
         )}
 
-        {/* Uploaded File Statistics & Preview Grid */}
+        
         {importData && (
           <div>
-            {/* Stats */}
+            
             <div className={styles.statsRow}>
               <div className={styles.statBox}>
                 <span className={styles.statLabel}>Total Spreadsheet Rows</span>
@@ -475,7 +475,7 @@ const AddMember = () => {
               </div>
             </div>
 
-            {/* Warning Alert if errors exist */}
+            
             {importData.invalidCount > 0 && (
               <div style={{ display: "flex", gap: "8px", padding: "12px", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-warning-bg)", border: "1px solid var(--color-warning-border)", color: "var(--text-primary)", fontSize: "13px", marginBottom: "16px", alignItems: "flex-start" }}>
                 <FiAlertTriangle style={{ color: "var(--color-warning)", flexShrink: 0, marginTop: "2px" }} />
@@ -485,7 +485,7 @@ const AddMember = () => {
               </div>
             )}
 
-            {/* Scrollable Preview Table */}
+            
             <div className={styles.previewContainer}>
               <div className={styles.previewScroll}>
                 <table className={styles.previewTable}>
@@ -533,7 +533,7 @@ const AddMember = () => {
               </div>
             </div>
 
-            {/* Actions for Import */}
+            
             <div className={styles.formActions} style={{ borderTop: "none", paddingTop: 0 }}>
               <button 
                 type="button" 

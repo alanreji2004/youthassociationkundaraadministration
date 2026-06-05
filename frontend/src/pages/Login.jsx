@@ -16,7 +16,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // If user is already logged in, redirect them to dashboard
+  
   useEffect(() => {
     if (user && !authLoading) {
       const from = location.state?.from?.pathname || "/dashboard";
@@ -28,7 +28,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
-    // Simple validation
+    
     if (!loginId.trim()) {
       setError("Login ID is required");
       return;
@@ -42,7 +42,7 @@ const Login = () => {
     try {
       await login(loginId, password);
       toast.success("Welcome back! Successfully logged in.");
-      // Redirect is handled by the useEffect above
+      
     } catch (err) {
       setError(err.message || "Authentication failed.");
       toast.error(err.message || "Failed to log in.");

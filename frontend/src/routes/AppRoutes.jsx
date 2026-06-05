@@ -11,10 +11,10 @@ import EditMember from "../pages/EditMember";
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public route */}
+      
       <Route path="/login" element={<Login />} />
 
-      {/* Protected administrative routes */}
+      
       <Route
         path="/"
         element={
@@ -31,7 +31,7 @@ const AppRoutes = () => {
         <Route path="membership/edit" element={<EditMember />} />
       </Route>
 
-      {/* Catch-all route to redirect back to base */}
+      
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

@@ -1,28 +1,25 @@
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
-// Constants for Validation
+
 const VALID_GENDERS = ["Male", "Female", "Other"];
 const VALID_BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
-/**
- * Validates a single parsed Excel row.
- * Returns an array of error messages. If empty, the row is valid.
- */
+
 export const validateMemberRow = (row) => {
   const errors = [];
 
-  // Name check
+  
   if (!row.name || typeof row.name !== "string" || !row.name.trim()) {
     errors.push("Name is required");
   }
 
-  // Address check
+  
   if (!row.address || typeof row.address !== "string" || !row.address.trim()) {
     errors.push("Address is required");
   }
 
-  // Gender check
+  
   if (!row.gender) {
     errors.push("Gender is required");
   } else {
@@ -32,12 +29,12 @@ export const validateMemberRow = (row) => {
     }
   }
 
-  // Date of Birth check (expects string or serial date)
+  
   if (!row.dob) {
     errors.push("Date of Birth (DOB) is required");
   }
 
-  // Mobile Number check
+  
   if (!row.mobileNumber) {
     errors.push("Mobile Number is required");
   } else {
@@ -47,7 +44,7 @@ export const validateMemberRow = (row) => {
     }
   }
 
-  // Blood Group check
+  
   if (!row.bloodGroup) {
     errors.push("Blood Group is required");
   } else {
@@ -60,9 +57,7 @@ export const validateMemberRow = (row) => {
   return errors;
 };
 
-/**
- * Downloads the Excel Template for Bulk Import
- */
+
 export const downloadImportTemplate = () => {
   const headers = [
     ["Name", "Address", "Gender", "DOB", "Mobile Number", "Blood Group", "Remarks"],
@@ -73,15 +68,15 @@ export const downloadImportTemplate = () => {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(headers);
 
-  // Set column widths
+  
   ws["!cols"] = [
-    { wch: 20 }, // Name
-    { wch: 35 }, // Address
-    { wch: 10 }, // Gender
-    { wch: 15 }, // DOB
-    { wch: 18 }, // Mobile Number
-    { wch: 12 }, // Blood Group
-    { wch: 25 }  // Remarks
+    { wch: 20 }, 
+    { wch: 35 }, 
+    { wch: 10 }, 
+    { wch: 15 }, 
+    { wch: 18 }, 
+    { wch: 12 }, 
+    { wch: 25 }  
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -91,14 +86,12 @@ export const downloadImportTemplate = () => {
   saveAs(blob, "SMYA_Member_Import_Template.xlsx");
 };
 
-/**
- * Exports all member data to XLSX format.
- */
+
 export const exportMembersToExcel = (members) => {
-  // Sort copy of members by serialNumber ascending for the Excel sheet
+  
   const sortedMembers = [...members].sort((a, b) => a.serialNumber - b.serialNumber);
 
-  // Map members data to expected excel headers (Name, Address, Gender, DOB, Phone Number, Blood Group only)
+  
   const data = sortedMembers.map((member) => ({
     "Name": member.name,
     "Address": member.address,
@@ -111,14 +104,14 @@ export const exportMembersToExcel = (members) => {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(data);
 
-  // Column width styling
+  
   ws["!cols"] = [
-    { wch: 22 }, // Name
-    { wch: 35 }, // Address
-    { wch: 12 }, // Gender
-    { wch: 15 }, // DOB
-    { wch: 18 }, // Phone Number
-    { wch: 12 }  // Blood Group
+    { wch: 22 }, 
+    { wch: 35 }, 
+    { wch: 12 }, 
+    { wch: 15 }, 
+    { wch: 18 }, 
+    { wch: 12 }  
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Members");
@@ -128,9 +121,7 @@ export const exportMembersToExcel = (members) => {
   saveAs(blob, "SMYA_Kundara_Members.xlsx");
 };
 
-/**
- * Parses an uploaded Excel (.xlsx) file, maps headers to fields, and validates each row.
- */
+
 export const parseImportExcel = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -142,7 +133,7 @@ export const parseImportExcel = (file) => {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         
-        // Parse sheets as a 2D array to check headers
+        
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         if (rows.length === 0) {
           reject(new Error("The uploaded spreadsheet is empty."));
@@ -151,7 +142,7 @@ export const parseImportExcel = (file) => {
 
         const headers = rows[0].map(h => String(h).trim().toLowerCase());
         
-        // Expected columns: Name, Address, Gender, DOB, Mobile Number, Blood Group, Remarks
+        
         const requiredHeaders = ["name", "address", "gender", "dob", "mobile number", "blood group"];
         const missing = requiredHeaders.filter(h => !headers.includes(h));
         
@@ -160,7 +151,7 @@ export const parseImportExcel = (file) => {
           return;
         }
 
-        // Convert worksheet rows to objects manually using indices to avoid header mismatch
+        
         const parsedRows = [];
         let validCount = 0;
         let invalidCount = 0;
@@ -168,7 +159,7 @@ export const parseImportExcel = (file) => {
         for (let i = 1; i < rows.length; i++) {
           const rowData = rows[i];
           if (rowData.length === 0 || rowData.every(val => val === null || val === undefined || val === "")) {
-            continue; // Skip completely empty rows
+            continue; 
           }
 
           const getValByHeader = (headerName) => {
@@ -179,16 +170,16 @@ export const parseImportExcel = (file) => {
             return val;
           };
 
-          // Format Date of Birth helper (handles Excel serial dates)
+          
           let parsedDob = getValByHeader("dob");
           if (typeof parsedDob === "number") {
-            // Excel serial date representation
+            
             const dateObj = new Date(Math.round((parsedDob - 25569) * 86400 * 1000));
             if (dateObj && !isNaN(dateObj.getTime())) {
               parsedDob = dateObj.toISOString().split('T')[0];
             }
           } else if (parsedDob) {
-            // Trim and double-check format
+            
             parsedDob = String(parsedDob).trim();
           }
 
@@ -202,12 +193,12 @@ export const parseImportExcel = (file) => {
             remarks: String(getValByHeader("remarks")).trim(),
           };
 
-          // Capitalize blood group for uniformity
+          
           if (memberObj.bloodGroup) {
             memberObj.bloodGroup = memberObj.bloodGroup.toUpperCase();
           }
           
-          // Capitalize Gender properly
+          
           if (memberObj.gender) {
             memberObj.gender = memberObj.gender.charAt(0).toUpperCase() + memberObj.gender.slice(1).toLowerCase();
           }
@@ -225,7 +216,7 @@ export const parseImportExcel = (file) => {
             ...memberObj,
             errors,
             isValid,
-            rowNum: i + 1 // Keep sheet row number references
+            rowNum: i + 1 
           });
         }
 

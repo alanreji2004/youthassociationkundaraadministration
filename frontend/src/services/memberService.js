@@ -14,12 +14,12 @@ import { db, auth } from "./firebase";
 
 const isFirebaseConfigured = !!import.meta.env.VITE_FIREBASE_API_KEY;
 
-// Local Fallback Storage Keys
+
 const LOCAL_MEMBERS_KEY = "smya_members_list";
 const LOCAL_COUNTER_KEY = "smya_member_counter";
 const subscribers = new Set();
 
-// Helper to get local members
+
 const getLocalMembers = () => {
   const data = localStorage.getItem(LOCAL_MEMBERS_KEY);
   if (!data) return [];
@@ -30,7 +30,7 @@ const getLocalMembers = () => {
   }
 };
 
-// Helper to save local members and notify
+
 const saveLocalMembers = (members) => {
   localStorage.setItem(LOCAL_MEMBERS_KEY, JSON.stringify(members));
   notifySubscribers();
@@ -42,21 +42,18 @@ const notifySubscribers = () => {
 };
 
 export const memberService = {
-  /**
-   * Subscribes to real-time member updates.
-   * Calls onUpdate with list of members sorted descending by serialNumber.
-   */
+  
   subscribeMembers: (onUpdate, onError) => {
     if (!isFirebaseConfigured) {
       subscribers.add(onUpdate);
-      // Immediately send current cached list
+      
       onUpdate(getLocalMembers());
       return () => {
         subscribers.delete(onUpdate);
       };
     }
 
-    // Query members ordered by serialNumber descending
+    
     const membersQuery = query(collection(db, "members"), orderBy("serialNumber", "desc"));
     
     return onSnapshot(membersQuery, (snapshot) => {
@@ -71,9 +68,7 @@ export const memberService = {
     });
   },
 
-  /**
-   * Adds a single member using a Firestore transaction to auto-increment the serial number.
-   */
+  
   addMember: async (memberData) => {
     if (!isFirebaseConfigured) {
       return new Promise((resolve) => {
@@ -91,8 +86,8 @@ export const memberService = {
             updatedAt: new Date().toISOString()
           };
 
-          // Update local members & counter
-          members.unshift(newMember); // Insert at beginning (since desc order)
+          
+          members.unshift(newMember); 
           localStorage.setItem(LOCAL_COUNTER_KEY, nextSerialNumber.toString());
           saveLocalMembers(members);
           resolve(newMember);
@@ -112,7 +107,7 @@ export const memberService = {
 
         const nextSerialNumber = currentCounter + 1;
 
-        // Create a new member document reference
+        
         const membersCollectionRef = collection(db, "members");
         const newMemberRef = doc(membersCollectionRef);
 
@@ -130,10 +125,10 @@ export const memberService = {
           updatedAt: new Date().toISOString()
         };
 
-        // Write the new member document
+        
         transaction.set(newMemberRef, newMemberData);
 
-        // Update the counter
+        
         transaction.set(counterRef, { counterValue: nextSerialNumber }, { merge: true });
 
         return { id: newMemberRef.id, ...newMemberData };
@@ -146,10 +141,7 @@ export const memberService = {
     }
   },
 
-  /**
-   * Bulk imports multiple members.
-   * Runs inside a single transaction chunking to avoid 500-doc limit.
-   */
+  
   bulkImportMembers: async (membersList) => {
     if (membersList.length === 0) return;
 
@@ -178,7 +170,7 @@ export const memberService = {
             });
           });
 
-          // Prepend in reverse to keep serial descending
+          
           const updatedMembers = [...importedList.reverse(), ...members];
           localStorage.setItem(LOCAL_COUNTER_KEY, currentCounter.toString());
           saveLocalMembers(updatedMembers);
@@ -188,7 +180,7 @@ export const memberService = {
     }
 
     try {
-      // Chunk imports in batches of 150 members to comfortably stay under Firestore's 500 operations per transaction limit
+      
       const chunkSize = 150;
       const chunks = [];
       for (let i = 0; i < membersList.length; i += chunkSize) {
@@ -227,7 +219,7 @@ export const memberService = {
             transaction.set(newMemberRef, newMemberData);
           }
 
-          // Update counter doc with the final counter value for this chunk
+          
           transaction.set(counterRef, { counterValue: startingSerial }, { merge: true });
         });
       }
@@ -237,9 +229,7 @@ export const memberService = {
     }
   },
 
-  /**
-   * Updates an existing member's information.
-   */
+  
   updateMember: async (memberId, memberData) => {
     if (!isFirebaseConfigured) {
       return new Promise((resolve, reject) => {
@@ -289,9 +279,7 @@ export const memberService = {
     }
   },
 
-  /**
-   * Toggles a member's status between Active and Inactive.
-   */
+  
   toggleMemberStatus: async (memberId, currentStatus) => {
     const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
     
@@ -325,9 +313,7 @@ export const memberService = {
     }
   },
 
-  /**
-   * Deletes all members and resets the auto-increment serial counter to 0.
-   */
+  
   deleteAllMembers: async () => {
     if (!isFirebaseConfigured) {
       return new Promise((resolve) => {
@@ -346,7 +332,7 @@ export const memberService = {
       const querySnapshot = await getDocs(membersQuery);
       
       const docs = querySnapshot.docs;
-      const chunkSize = 400; // Chunk batch operations comfortably under 500 limit
+      const chunkSize = 400; 
       
       for (let i = 0; i < docs.length; i += chunkSize) {
         const batch = writeBatch(db);
@@ -357,7 +343,7 @@ export const memberService = {
         await batch.commit();
       }
 
-      // Reset sequence counter back to 0
+      
       const batchFinal = writeBatch(db);
       batchFinal.set(counterRef, { counterValue: 0 }, { merge: true });
       await batchFinal.commit();
@@ -367,9 +353,7 @@ export const memberService = {
     }
   },
 
-  /**
-   * Deletes all members after re-authenticating the logged-in user with their password.
-   */
+  
   deleteAllMembersWithAuth: async (password) => {
     if (!isFirebaseConfigured) {
       return new Promise((resolve, reject) => {
@@ -392,11 +376,11 @@ export const memberService = {
         throw new Error("No authenticated session found.");
       }
 
-      // Create authentication credential and re-authenticate the user session
+      
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
 
-      // Perform actual deletions
+      
       await memberService.deleteAllMembers();
     } catch (error) {
       console.error("Authentication/wipe error:", error);

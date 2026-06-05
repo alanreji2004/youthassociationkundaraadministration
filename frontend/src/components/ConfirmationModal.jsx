@@ -18,7 +18,7 @@ const ConfirmationModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setPassword(""); // Reset password when modal opens
+      setPassword(""); 
     }
   }, [isOpen]);
 

@@ -30,7 +30,7 @@
   align-self: flex-start;
 }
 
-/* Controls Bar */
+
 .controlsBar {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -92,7 +92,7 @@
   border-color: var(--border-focus);
 }
 
-/* Primary Button Styling */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -125,7 +125,7 @@
   color: var(--text-primary);
 }
 
-/* Table Card Layout */
+
 .tableContainer {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -138,7 +138,7 @@
 .tableResponsive {
   overflow-x: auto;
   position: relative;
-  max-height: 600px; /* enables sticky header scroll boundaries */
+  max-height: 600px; 
 }
 
 .table {
@@ -227,7 +227,7 @@
   color: #db2777;
 }
 
-/* Empty & Loading States */
+
 .emptyState, .loadingState {
   padding: var(--space-12) var(--space-6);
   text-align: center;
@@ -254,7 +254,7 @@
   color: var(--text-muted);
 }
 
-/* Pagination */
+
 .pagination {
   display: flex;
   align-items: center;
@@ -295,7 +295,7 @@
   cursor: not-allowed;
 }
 
-/* Media Breakpoints */
+
 @media (min-width: 768px) {
   .headerArea {
     flex-direction: row;
@@ -316,7 +316,7 @@
   }
 }
 
-/* Table Edit Actions */
+
 .btnTableEdit {
   display: inline-flex;
   align-items: center;
@@ -337,7 +337,7 @@
   border-color: var(--text-secondary);
 }
 
-/* Status Badges */
+
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -375,7 +375,7 @@
   background-color: #4b5563;
 }
 
-/* Danger Zone */
+
 .dangerZone {
   margin-top: var(--space-12);
   border: 1px solid var(--color-error-border);

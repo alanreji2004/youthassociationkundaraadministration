@@ -40,7 +40,7 @@
   gap: var(--space-8);
 }
 
-/* Card Styling */
+
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -64,7 +64,7 @@
   padding-bottom: var(--space-4);
 }
 
-/* Form Styles */
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -122,7 +122,7 @@
   padding-top: var(--space-6);
 }
 
-/* Button Styling */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -165,7 +165,7 @@
   cursor: not-allowed;
 }
 
-/* Bulk Import Layout */
+
 .importZone {
   border: 2px dashed var(--border-color);
   border-radius: var(--radius-lg);
@@ -199,7 +199,7 @@
   max-width: 420px;
 }
 
-/* Stats Cards inside Bulk Import */
+
 .statsRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -239,7 +239,7 @@
   color: var(--color-error);
 }
 
-/* Preview Table Container */
+
 .previewContainer {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -284,7 +284,7 @@
   list-style: none;
 }
 
-/* Spinner */
+
 .spinner {
   width: 16px;
   height: 16px;
@@ -298,7 +298,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Media Breakpoints */
+
 @media (min-width: 480px) {
   .formGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

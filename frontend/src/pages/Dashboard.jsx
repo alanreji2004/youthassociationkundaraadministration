@@ -42,7 +42,7 @@ const Dashboard = () => {
       </div>
 
       <div className={styles.grid}>
-        {/* Active Membership Stat Card */}
+        
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Membership Management</span>
@@ -68,7 +68,7 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Future Accounts Module */}
+        
         <div className={`${styles.card} ${styles.cardLocked}`}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Financial Accounts</span>
@@ -83,7 +83,7 @@ const Dashboard = () => {
           <span className={styles.badge}>Coming Soon</span>
         </div>
 
-        {/* Future Events Module */}
+        
         <div className={`${styles.card} ${styles.cardLocked}`}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Events & Activities</span>

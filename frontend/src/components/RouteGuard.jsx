@@ -44,7 +44,7 @@ const RouteGuard = ({ children }) => {
   }
 
   if (!user) {
-    // Redirect to login page and store current location for post-login redirect
+    
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

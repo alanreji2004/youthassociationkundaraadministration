@@ -50,7 +50,7 @@ const Layout = () => {
 
   return (
     <div className={styles.wrapper}>
-      {/* Fallback Warning Banner if Firebase is not connected */}
+      
       {isFallback && (
         <div
           style={{
@@ -70,7 +70,7 @@ const Layout = () => {
         </div>
       )}
 
-      {/* Adjust page spacing if warning banner is shown */}
+      
       <div 
         className={styles.wrapper} 
         style={{ 
@@ -78,17 +78,16 @@ const Layout = () => {
           paddingTop: isFallback ? "36px" : "0" 
         }}
       >
-        {/* Mobile Sidebar Overlay */}
+        
         <div 
           className={`${styles.sidebarOverlay} ${isSidebarOpen ? styles.sidebarOverlayOpen : ""}`} 
           onClick={closeSidebar}
         />
 
-        {/* Sidebar Navigation */}
+        
         <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ""}`}>
           <div className={styles.sidebarHeader}>
             <div className={styles.logo}>
-              <FiDatabase />
               <span>SMYA Kundara</span>
             </div>
             {isSidebarOpen && (
@@ -126,7 +125,7 @@ const Layout = () => {
               <span>Membership</span>
             </NavLink>
 
-            {/* Locked Future Expansion Items */}
+            
             <div className={`${styles.navItem} ${styles.navItemDisabled}`} title="Coming soon">
               <FiUsers size={18} style={{ opacity: 0.5 }} />
               <span>Accounts (Soon)</span>
@@ -142,7 +141,7 @@ const Layout = () => {
           </div>
         </aside>
 
-        {/* Main Content Area */}
+        
         <div className={styles.mainArea}>
           <header className={styles.header}>
             <div className={styles.headerLeft}>
@@ -183,7 +182,7 @@ const Layout = () => {
         </div>
       </div>
 
-      {/* Sign Out Modal Dialog */}
+      
       <ConfirmationModal
         isOpen={isLogoutModalOpen}
         title="Confirm Logout"

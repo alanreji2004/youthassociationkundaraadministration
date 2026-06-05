@@ -22,11 +22,11 @@ const EditMember = () => {
   const toast = useToast();
   const searchContainerRef = useRef(null);
 
-  // Core Data State
+  
   const [members, setMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
 
-  // Form Field State
+  
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -40,15 +40,15 @@ const EditMember = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Search Lookup State
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Modals Toggling
+  
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isStatusToggling, setIsStatusToggling] = useState(false);
 
-  // Subscribe to real-time members list
+  
   useEffect(() => {
     const unsubscribe = memberService.subscribeMembers(
       (data) => {
@@ -64,13 +64,13 @@ const EditMember = () => {
     return () => unsubscribe();
   }, [toast]);
 
-  // Find active member to edit based on route parameter ':id'
+  
   const activeMember = useMemo(() => {
     if (!id || members.length === 0) return null;
     return members.find((m) => m.id === id) || null;
   }, [id, members]);
 
-  // Populate form fields when active member is loaded
+  
   useEffect(() => {
     if (activeMember) {
       setFormData({
@@ -87,7 +87,7 @@ const EditMember = () => {
     }
   }, [activeMember]);
 
-  // Close search suggestions list when clicking outside
+  
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
@@ -98,13 +98,13 @@ const EditMember = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter members list based on lookup name search query
+  
   const filteredSuggestions = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return [];
     return members
       .filter((m) => m.name.toLowerCase().includes(query))
-      .slice(0, 5); // Limit dropdown to top 5 results for neat UI
+      .slice(0, 5); 
   }, [members, searchQuery]);
 
   const handleInputChange = (e) => {
@@ -135,7 +135,7 @@ const EditMember = () => {
     return errors;
   };
 
-  // Handle saving changes
+  
   const handleSaveSubmit = async (e) => {
     e.preventDefault();
     if (!id) return;
@@ -159,7 +159,7 @@ const EditMember = () => {
     }
   };
 
-  // Toggle status triggers
+  
   const handleStatusToggleConfirm = async () => {
     if (!id) return;
     setIsStatusModalOpen(false);
@@ -185,7 +185,7 @@ const EditMember = () => {
 
   return (
     <div className={styles.sectionsContainer}>
-      {/* Page Header */}
+      
       <div className={styles.header}>
         <Link to="/membership" className={styles.backBtn} aria-label="Back to registry list">
           <FiArrowLeft size={18} />
@@ -198,7 +198,7 @@ const EditMember = () => {
         </div>
       </div>
 
-      {/* SEARCH LOOKUP CONTAINER (Active always, especially helpful if no ID is loaded) */}
+      
       <section className={styles.lookupCard}>
         <h2 className={styles.lookupTitle}>Search Member to Edit</h2>
         <div ref={searchContainerRef} className={styles.lookupWrapper}>
@@ -240,14 +240,14 @@ const EditMember = () => {
         </div>
       </section>
 
-      {/* EDITABLE FORM CONTAINER */}
+      
       {loadingMembers ? (
         <div className={styles.card}>
           <div className="skeleton" style={{ height: "40px", marginBottom: "20px" }} />
           <div className="skeleton" style={{ height: "120px" }} />
         </div>
       ) : !id ? (
-        // Prompt state when no ID selected
+        
         <div className={styles.card} style={{ textAlign: "center", padding: "40px 20px" }}>
           <FiSearch size={32} style={{ color: "var(--text-muted)", marginBottom: "12px" }} />
           <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
@@ -255,7 +255,7 @@ const EditMember = () => {
           </p>
         </div>
       ) : !activeMember ? (
-        // Member not found in database
+        
         <div className={styles.card} style={{ textAlign: "center", padding: "40px 20px" }}>
           <FiAlertTriangle size={32} style={{ color: "var(--color-error)", marginBottom: "12px" }} />
           <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
@@ -266,7 +266,7 @@ const EditMember = () => {
           </Link>
         </div>
       ) : (
-        // Active Form
+        
         <section className={styles.card}>
           <div className={styles.cardHeaderArea}>
             <div>
@@ -276,7 +276,7 @@ const EditMember = () => {
               </p>
             </div>
             
-            {/* Status indicator */}
+            
             <div
               className={`${styles.statusBadge} ${
                 formData.status === "Active" ? styles.statusActive : styles.statusInactive
@@ -289,7 +289,7 @@ const EditMember = () => {
 
           <form onSubmit={handleSaveSubmit}>
             <div className={styles.formGrid}>
-              {/* Serial Number (Read-only) */}
+              
               <div className={styles.formGroup}>
                 <label className={styles.label}>Serial Number</label>
                 <input
@@ -300,7 +300,7 @@ const EditMember = () => {
                 />
               </div>
 
-              {/* Name */}
+              
               <div className={styles.formGroup}>
                 <label htmlFor="name" className={styles.label}>Full Name *</label>
                 <input
@@ -315,7 +315,7 @@ const EditMember = () => {
                 {formErrors.name && <span className={styles.errorText}>{formErrors.name}</span>}
               </div>
 
-              {/* Gender */}
+              
               <div className={styles.formGroup}>
                 <label htmlFor="gender" className={styles.label}>Gender *</label>
                 <select
@@ -333,7 +333,7 @@ const EditMember = () => {
                 {formErrors.gender && <span className={styles.errorText}>{formErrors.gender}</span>}
               </div>
 
-              {/* DOB */}
+              
               <div className={styles.formGroup}>
                 <label htmlFor="dob" className={styles.label}>Date of Birth *</label>
                 <input
@@ -348,7 +348,7 @@ const EditMember = () => {
                 {formErrors.dob && <span className={styles.errorText}>{formErrors.dob}</span>}
               </div>
 
-              {/* Mobile Number */}
+              
               <div className={styles.formGroup}>
                 <label htmlFor="mobileNumber" className={styles.label}>Mobile Number *</label>
                 <input
@@ -363,7 +363,7 @@ const EditMember = () => {
                 {formErrors.mobileNumber && <span className={styles.errorText}>{formErrors.mobileNumber}</span>}
               </div>
 
-              {/* Blood Group */}
+              
               <div className={styles.formGroup}>
                 <label htmlFor="bloodGroup" className={styles.label}>Blood Group *</label>
                 <select
@@ -381,7 +381,7 @@ const EditMember = () => {
                 {formErrors.bloodGroup && <span className={styles.errorText}>{formErrors.bloodGroup}</span>}
               </div>
 
-              {/* Address */}
+              
               <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
                 <label htmlFor="address" className={styles.label}>Residential Address *</label>
                 <textarea
@@ -397,7 +397,7 @@ const EditMember = () => {
                 {formErrors.address && <span className={styles.errorText}>{formErrors.address}</span>}
               </div>
 
-              {/* Remarks */}
+              
               <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
                 <label htmlFor="remarks" className={styles.label}>Remarks (Optional)</label>
                 <input
@@ -412,10 +412,10 @@ const EditMember = () => {
               </div>
             </div>
 
-            {/* Actions Footer */}
+            
             <div className={styles.formActions}>
               <div className={styles.leftActions}>
-                {/* Deactivate/Activate Button */}
+                
                 {formData.status === "Active" ? (
                   <button
                     type="button"
@@ -470,7 +470,7 @@ const EditMember = () => {
         </section>
       )}
 
-      {/* Confirmation Modal for Status Toggle */}
+      
       <ConfirmationModal
         isOpen={isStatusModalOpen}
         title={formData.status === "Active" ? "Confirm Deactivation" : "Confirm Re-activation"}
