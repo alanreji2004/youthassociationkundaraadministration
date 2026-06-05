@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   FiArrowLeft, 
@@ -40,6 +40,38 @@ const AddMember = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [excelError, setExcelError] = useState("");
   const [dragActive, setDragActive] = useState(false);
+
+  // Counter State to calculate target S.No. dynamically
+  const [members, setMembers] = useState([]);
+  const [currentCounter, setCurrentCounter] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = memberService.subscribeMembers(
+      (data) => {
+        setMembers(data);
+        const maxSerial = data.length > 0 ? Math.max(...data.map(m => m.serialNumber || 0)) : 0;
+        setCurrentCounter(maxSerial);
+      },
+      (err) => {
+        console.error("Failed to fetch member counter for import preview:", err);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
+  const getProspectiveSerial = (idx) => {
+    const row = importData.data[idx];
+    if (!row.isValid) return "—";
+    
+    // Count valid rows preceding this one
+    let validBefore = 0;
+    for (let i = 0; i < idx; i++) {
+      if (importData.data[i].isValid) {
+        validBefore++;
+      }
+    }
+    return `#${currentCounter + validBefore + 1}`;
+  };
 
   // Handle Form Input Change
   const handleChange = (e) => {
@@ -459,7 +491,7 @@ const AddMember = () => {
                 <table className={styles.previewTable}>
                   <thead>
                     <tr>
-                      <th className={styles.previewTh}>Row</th>
+                      <th className={styles.previewTh}>Target S.No.</th>
                       <th className={styles.previewTh}>Name</th>
                       <th className={styles.previewTh}>Gender</th>
                       <th className={styles.previewTh}>DOB</th>
@@ -473,7 +505,7 @@ const AddMember = () => {
                   <tbody>
                     {importData.data.map((row, idx) => (
                       <tr key={idx} className={`${styles.previewTr} ${!row.isValid ? styles.rowInvalid : ""}`}>
-                        <td className={styles.previewTd} style={{ fontWeight: 600 }}>{row.rowNum}</td>
+                        <td className={styles.previewTd} style={{ fontWeight: 600 }}>{getProspectiveSerial(idx)}</td>
                         <td className={styles.previewTd} style={{ fontWeight: 500 }}>{row.name || <span style={{ color: "#d1d5db" }}>N/A</span>}</td>
                         <td className={styles.previewTd}>{row.gender || <span style={{ color: "#d1d5db" }}>N/A</span>}</td>
                         <td className={styles.previewTd}>{row.dob || <span style={{ color: "#d1d5db" }}>N/A</span>}</td>

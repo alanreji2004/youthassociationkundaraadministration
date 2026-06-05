@@ -98,17 +98,14 @@ export const exportMembersToExcel = (members) => {
   // Sort copy of members by serialNumber ascending for the Excel sheet
   const sortedMembers = [...members].sort((a, b) => a.serialNumber - b.serialNumber);
 
-  // Map members data to expected excel headers
+  // Map members data to expected excel headers (Name, Address, Gender, DOB, Phone Number, Blood Group only)
   const data = sortedMembers.map((member) => ({
-    "Serial Number": member.serialNumber,
     "Name": member.name,
     "Address": member.address,
     "Gender": member.gender,
-    "Date of Birth": member.dob,
-    "Mobile Number": member.mobileNumber,
-    "Blood Group": member.bloodGroup,
-    "Status": member.status || "Active",
-    "Remarks": member.remarks || ""
+    "DOB": member.dob,
+    "Phone Number": member.mobileNumber,
+    "Blood Group": member.bloodGroup
   }));
 
   const wb = XLSX.utils.book_new();
@@ -116,15 +113,12 @@ export const exportMembersToExcel = (members) => {
 
   // Column width styling
   ws["!cols"] = [
-    { wch: 15 }, // Serial Number
     { wch: 22 }, // Name
     { wch: 35 }, // Address
     { wch: 12 }, // Gender
-    { wch: 15 }, // Date of Birth
-    { wch: 18 }, // Mobile Number
-    { wch: 12 }, // Blood Group
-    { wch: 12 }, // Status
-    { wch: 30 }  // Remarks
+    { wch: 15 }, // DOB
+    { wch: 18 }, // Phone Number
+    { wch: 12 }  // Blood Group
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Members");
