@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { 
   FiPlus, 
@@ -52,7 +52,7 @@ const Membership = () => {
         setMembers(data);
         setLoading(false);
       },
-      (error) => {
+      () => {
         toast.error("Failed to load real-time database updates.");
         setLoading(false);
       }
@@ -61,10 +61,7 @@ const Membership = () => {
     return () => unsubscribe();
   }, [toast]);
 
-  
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, genderFilter, bloodFilter, statusFilter]);
+
 
   
   const filteredMembers = useMemo(() => {
@@ -141,7 +138,7 @@ const Membership = () => {
     try {
       exportMembersToExcel(members);
       toast.success("Excel spreadsheet exported successfully.");
-    } catch (err) {
+    } catch {
       toast.error("Export failed. Please try again.");
     }
   };
@@ -211,7 +208,10 @@ const Membership = () => {
             className={styles.searchInput}
             placeholder="Search by name, phone number, address..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             disabled={isDeleting}
           />
         </div>
@@ -220,7 +220,10 @@ const Membership = () => {
           <select
             className={styles.selectFilter}
             value={genderFilter}
-            onChange={(e) => setGenderFilter(e.target.value)}
+            onChange={(e) => {
+              setGenderFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             aria-label="Filter by Gender"
             disabled={isDeleting}
           >
@@ -233,7 +236,10 @@ const Membership = () => {
           <select
             className={styles.selectFilter}
             value={bloodFilter}
-            onChange={(e) => setBloodFilter(e.target.value)}
+            onChange={(e) => {
+              setBloodFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             aria-label="Filter by Blood Group"
             disabled={isDeleting}
           >
@@ -251,7 +257,10 @@ const Membership = () => {
           <select
             className={styles.selectFilter}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             aria-label="Filter by Status"
             disabled={isDeleting}
           >

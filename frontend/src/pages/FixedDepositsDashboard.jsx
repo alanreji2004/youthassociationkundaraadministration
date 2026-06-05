@@ -141,7 +141,7 @@ const FixedDepositsDashboard = () => {
         fd.branch?.toLowerCase().includes(query) ||
         fd.remarks?.toLowerCase().includes(query);
 
-      let matchesStatus = true;
+      let matchesStatus;
       if (showAll) {
         matchesStatus = true;
       } else if (statusFilter === "Active_Matured") {
@@ -205,9 +205,7 @@ const FixedDepositsDashboard = () => {
 
   const totalPages = Math.ceil(sortedFds.length / ITEMS_PER_PAGE) || 1;
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, statusFilter, bankFilter, yearFilter, startDate, endDate, showClosed, showRenewed, showAll]);
+
 
   const handleSort = (key) => {
     let direction = "asc";
@@ -364,7 +362,10 @@ const FixedDepositsDashboard = () => {
               className={styles.searchInput}
               placeholder="Search FD number, bank, branch, remarks..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
 
@@ -375,6 +376,7 @@ const FixedDepositsDashboard = () => {
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setShowAll(e.target.value === "All");
+                setCurrentPage(1);
               }}
               aria-label="Filter by Status"
             >
@@ -389,7 +391,10 @@ const FixedDepositsDashboard = () => {
             <select
               className={styles.selectFilter}
               value={bankFilter}
-              onChange={(e) => setBankFilter(e.target.value)}
+              onChange={(e) => {
+                setBankFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               aria-label="Filter by Bank"
             >
               <option value="">All Banks</option>
@@ -401,7 +406,10 @@ const FixedDepositsDashboard = () => {
             <select
               className={styles.selectFilter}
               value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
+              onChange={(e) => {
+                setYearFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               aria-label="Filter by Deposit Year"
             >
               <option value="">All Years</option>
@@ -415,7 +423,10 @@ const FixedDepositsDashboard = () => {
               type="date"
               className={styles.dateInput}
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setCurrentPage(1);
+              }}
               aria-label="Deposit start date filter"
             />
             
@@ -424,7 +435,10 @@ const FixedDepositsDashboard = () => {
               type="date"
               className={styles.dateInput}
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setCurrentPage(1);
+              }}
               aria-label="Deposit end date filter"
             />
           </div>
@@ -437,7 +451,10 @@ const FixedDepositsDashboard = () => {
           <input
             type="checkbox"
             checked={showClosed}
-            onChange={(e) => setShowClosed(e.target.checked)}
+            onChange={(e) => {
+              setShowClosed(e.target.checked);
+              setCurrentPage(1);
+            }}
             disabled={showAll || statusFilter !== "Active_Matured"}
           />
           <span>Show Closed</span>
@@ -446,7 +463,10 @@ const FixedDepositsDashboard = () => {
           <input
             type="checkbox"
             checked={showRenewed}
-            onChange={(e) => setShowRenewed(e.target.checked)}
+            onChange={(e) => {
+              setShowRenewed(e.target.checked);
+              setCurrentPage(1);
+            }}
             disabled={showAll || statusFilter !== "Active_Matured"}
           />
           <span>Show Renewed</span>

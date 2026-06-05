@@ -1,71 +1,107 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { FiDatabase, FiLayers, FiTrendingUp, FiTrendingDown, FiFolder } from "react-icons/fi";
-import { FaRupeeSign } from "react-icons/fa";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { 
+  FiLayout, 
+  FiBook, 
+  FiArrowDownLeft, 
+  FiArrowUpRight, 
+  FiCalendar, 
+  FiFileText, 
+  FiDatabase 
+} from "react-icons/fi";
 import styles from "./FinancialAccounts.module.css";
 
 const FinancialAccounts = () => {
+  const location = useLocation();
+
   return (
-    <div>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Financial Accounts</h1>
-        <p className={styles.subtitle}>
-          Treasury management system, sub-ledgers, and asset auditing tools.
-        </p>
-      </div>
-
-      <div className={styles.grid}>
-        <Link to="/financial-accounts/fixed-deposits" className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>Fixed Deposits</span>
-            <FiDatabase className={styles.cardIcon} />
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.cardDesc}>
-              Track organizational deposit certificates, maturity dates, interest credits, renewals, and closures.
-            </p>
-            <span className={styles.cardStatus}>Active Module</span>
-          </div>
-        </Link>
-
-        <div className={`${styles.card} ${styles.cardLocked}`}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>General Ledger</span>
-            <FiLayers className={styles.cardIcon} />
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.cardDesc}>
-              Daily cash registers, banking operations, receipts, payments, and vouchers.
-            </p>
-            <span className={styles.badge}>Coming Soon</span>
-          </div>
+    <div className={styles.workspace}>
+      <header className={styles.workspaceHeader}>
+        <div className={styles.titleSection}>
+          <h1 className={styles.mainTitle}>Treasury & Accounts</h1>
+          <p className={styles.subTitle}>
+            ERP ledger records, cash registers, event tracking, and financial statements.
+          </p>
         </div>
+        
+        <nav className={styles.subTabs}>
+          <NavLink
+            to="dashboard"
+            className={({ isActive }) => 
+              isActive ? `${styles.tabLink} ${styles.tabActive}` : styles.tabLink
+            }
+          >
+            <FiLayout size={16} />
+            <span>Dashboard</span>
+          </NavLink>
+          
+          <NavLink
+            to="cash-book"
+            className={({ isActive }) => 
+              isActive ? `${styles.tabLink} ${styles.tabActive}` : styles.tabLink
+            }
+          >
+            <FiBook size={16} />
+            <span>Cash Book</span>
+          </NavLink>
+          
+          <NavLink
+            to="receipts"
+            className={({ isActive }) => 
+              isActive ? `${styles.tabLink} ${styles.tabActive}` : styles.tabLink
+            }
+          >
+            <FiArrowDownLeft size={16} />
+            <span>Receipts</span>
+          </NavLink>
+          
+          <NavLink
+            to="payments"
+            className={({ isActive }) => 
+              isActive ? `${styles.tabLink} ${styles.tabActive}` : styles.tabLink
+            }
+          >
+            <FiArrowUpRight size={16} />
+            <span>Payments</span>
+          </NavLink>
+          
+          <NavLink
+            to="events"
+            className={({ isActive }) => 
+              isActive || location.pathname.includes("/events/")
+                ? `${styles.tabLink} ${styles.tabActive}` 
+                : styles.tabLink
+            }
+          >
+            <FiCalendar size={16} />
+            <span>Events</span>
+          </NavLink>
+          
+          <NavLink
+            to="reports"
+            className={({ isActive }) => 
+              isActive ? `${styles.tabLink} ${styles.tabActive}` : styles.tabLink
+            }
+          >
+            <FiFileText size={16} />
+            <span>Reports</span>
+          </NavLink>
+          
+          <NavLink
+            to="fixed-deposits"
+            className={({ isActive }) => 
+              isActive || location.pathname.includes("/fixed-deposits/")
+                ? `${styles.tabLink} ${styles.tabActive}` 
+                : styles.tabLink
+            }
+          >
+            <FiDatabase size={16} />
+            <span>Fixed Deposits</span>
+          </NavLink>
+        </nav>
+      </header>
 
-        {/* <div className={`${styles.card} ${styles.cardLocked}`}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>Budgeting & Treasury</span>
-            <FaRupeeSign className={styles.cardIcon} />
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.cardDesc}>
-              Define annual budget targets, track allocation allowances, and monitor departmental expenditures.
-            </p>
-            <span className={styles.badge}>Coming Soon</span>
-          </div>
-        </div> */}
-
-        <div className={`${styles.card} ${styles.cardLocked}`}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>Audits & Reports</span>
-            <FiTrendingUp className={styles.cardIcon} />
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.cardDesc}>
-              Generate balance sheets, trial balances, account ledgers, and comprehensive financial audit reports.
-            </p>
-            <span className={styles.badge}>Coming Soon</span>
-          </div>
-        </div>
+      <div className={styles.workspaceContent}>
+        <Outlet />
       </div>
     </div>
   );

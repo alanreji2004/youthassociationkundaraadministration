@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { 
   FiMenu, 
@@ -7,7 +7,8 @@ import {
   FiLayout, 
   FiDatabase, 
   FiAlertTriangle, 
-  FiX 
+  FiX,
+  FiCalendar
 } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "./Toast";
@@ -39,7 +40,7 @@ const Layout = () => {
       await logout();
       toast.success("Successfully logged out.");
       navigate("/login");
-    } catch (error) {
+    } catch {
       toast.error("Logout failed. Please try again.");
     }
   };
@@ -134,10 +135,16 @@ const Layout = () => {
               <FiDatabase size={18} />
               <span>Accounts</span>
             </NavLink>
-            <div className={`${styles.navItem} ${styles.navItemDisabled}`} title="Coming soon">
-              <FiUsers size={18} style={{ opacity: 0.5 }} />
-              <span>Events (Soon)</span>
-            </div>
+            <NavLink 
+              to="/financial-accounts/events" 
+              className={({ isActive }) => 
+                isActive ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem
+              }
+              onClick={closeSidebar}
+            >
+              <FiCalendar size={18} />
+              <span>Events</span>
+            </NavLink>
           </nav>
 
           <div className={styles.sidebarFooter}>

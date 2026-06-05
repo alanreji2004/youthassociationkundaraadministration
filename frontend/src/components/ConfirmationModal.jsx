@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import styles from "./ConfirmationModal.module.css";
 
 const ConfirmationModal = ({
@@ -16,17 +16,16 @@ const ConfirmationModal = ({
   const modalRef = useRef(null);
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    if (isOpen) {
-      setPassword(""); 
-    }
-  }, [isOpen]);
+  const handleCancelClick = useCallback(() => {
+    setPassword("");
+    onCancel();
+  }, [onCancel]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
       if (e.key === "Escape") {
-        onCancel();
+        handleCancelClick();
       }
     };
 
@@ -43,13 +42,13 @@ const ConfirmationModal = ({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onCancel]);
+  }, [isOpen, handleCancelClick]);
 
   if (!isOpen) return null;
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
-      onCancel();
+      handleCancelClick();
     }
   };
 
@@ -59,6 +58,7 @@ const ConfirmationModal = ({
     } else {
       onConfirm();
     }
+    setPassword("");
   };
 
   return (
@@ -115,7 +115,7 @@ const ConfirmationModal = ({
           <button
             type="button"
             className={`${styles.btn} ${styles.btnCancel}`}
-            onClick={onCancel}
+            onClick={handleCancelClick}
           >
             {cancelText}
           </button>

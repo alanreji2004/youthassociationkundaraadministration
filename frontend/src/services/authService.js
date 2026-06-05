@@ -16,7 +16,7 @@ if (!isFirebaseConfigured) {
   if (savedSession) {
     try {
       currentMockUser = JSON.parse(savedSession);
-    } catch (e) {
+    } catch {
       localStorage.removeItem(LOCAL_SESSION_KEY);
     }
   }
@@ -66,7 +66,7 @@ export const authService = {
       } else if (error.code === "auth/invalid-email") {
         friendlyMessage = "Invalid format. Please enter a valid Login ID.";
       }
-      throw new Error(friendlyMessage);
+      throw new Error(friendlyMessage, { cause: error });
     }
   },
 

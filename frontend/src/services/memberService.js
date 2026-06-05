@@ -25,7 +25,7 @@ const getLocalMembers = () => {
   if (!data) return [];
   try {
     return JSON.parse(data).sort((a, b) => b.serialNumber - a.serialNumber);
-  } catch (e) {
+  } catch {
     return [];
   }
 };
@@ -137,7 +137,7 @@ export const memberService = {
       return result;
     } catch (error) {
       console.error("Firestore transaction error while adding member:", error);
-      throw new Error(`Failed to add member: ${error.message}`);
+      throw new Error(`Failed to add member: ${error.message}`, { cause: error });
     }
   },
 
@@ -225,7 +225,7 @@ export const memberService = {
       }
     } catch (error) {
       console.error("Firestore transaction error during bulk import:", error);
-      throw new Error(`Bulk import failed: ${error.message}`);
+      throw new Error(`Bulk import failed: ${error.message}`, { cause: error });
     }
   },
 
@@ -275,7 +275,7 @@ export const memberService = {
       return { id: memberId, ...updateData };
     } catch (error) {
       console.error("Firestore update error:", error);
-      throw new Error(`Failed to update member details: ${error.message}`);
+      throw new Error(`Failed to update member details: ${error.message}`, { cause: error });
     }
   },
 
@@ -309,7 +309,7 @@ export const memberService = {
       return { id: memberId, status: nextStatus };
     } catch (error) {
       console.error("Firestore status toggle error:", error);
-      throw new Error(`Failed to toggle member status: ${error.message}`);
+      throw new Error(`Failed to toggle member status: ${error.message}`, { cause: error });
     }
   },
 
@@ -349,7 +349,7 @@ export const memberService = {
       await batchFinal.commit();
     } catch (error) {
       console.error("Firestore reset error:", error);
-      throw new Error(`Failed to wipe registry: ${error.message}`);
+      throw new Error(`Failed to wipe registry: ${error.message}`, { cause: error });
     }
   },
 
@@ -388,7 +388,7 @@ export const memberService = {
       if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
         friendlyError = "Incorrect password. Wipe database aborted.";
       }
-      throw new Error(friendlyError);
+      throw new Error(friendlyError, { cause: error });
     }
   }
 };

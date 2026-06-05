@@ -1,4 +1,3 @@
-import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import RouteGuard from "../components/RouteGuard";
 import Layout from "../components/Layout";
@@ -11,6 +10,13 @@ import FixedDepositsDashboard from "../pages/FixedDepositsDashboard";
 import AddFixedDeposit from "../pages/AddFixedDeposit";
 import FixedDepositDetails from "../pages/FixedDepositDetails";
 import FinancialAccounts from "../pages/FinancialAccounts";
+import FinancialDashboard from "../pages/FinancialDashboard";
+import CashBook from "../pages/CashBook";
+import ReceiptsModule from "../pages/ReceiptsModule";
+import PaymentsModule from "../pages/PaymentsModule";
+import EventsModule from "../pages/EventsModule";
+import EventDetails from "../pages/EventDetails";
+import ReportsModule from "../pages/ReportsModule";
 
 const AppRoutes = () => {
   return (
@@ -32,10 +38,19 @@ const AppRoutes = () => {
         <Route path="membership/edit/:id" element={<EditMember />} />
         <Route path="membership/edit" element={<EditMember />} />
         
-        <Route path="financial-accounts" element={<FinancialAccounts />} />
-        <Route path="financial-accounts/fixed-deposits" element={<FixedDepositsDashboard />} />
-        <Route path="financial-accounts/fixed-deposits/new" element={<AddFixedDeposit />} />
-        <Route path="financial-accounts/fixed-deposits/:fdId" element={<FixedDepositDetails />} />
+        <Route path="financial-accounts" element={<FinancialAccounts />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<FinancialDashboard />} />
+          <Route path="cash-book" element={<CashBook />} />
+          <Route path="receipts" element={<ReceiptsModule />} />
+          <Route path="payments" element={<PaymentsModule />} />
+          <Route path="events" element={<EventsModule />} />
+          <Route path="events/:eventId" element={<EventDetails />} />
+          <Route path="reports" element={<ReportsModule />} />
+          <Route path="fixed-deposits" element={<FixedDepositsDashboard />} />
+          <Route path="fixed-deposits/new" element={<AddFixedDeposit />} />
+          <Route path="fixed-deposits/:fdId" element={<FixedDepositDetails />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

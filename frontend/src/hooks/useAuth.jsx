@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { authService } from "../services/authService";
 
 const AuthContext = createContext({
@@ -12,12 +12,9 @@ const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isFallback, setIsFallback] = useState(authService.isFallbackMode());
+  const isFallback = authService.isFallbackMode();
 
   useEffect(() => {
-    
-    setIsFallback(authService.isFallbackMode());
-
     const unsubscribe = authService.onAuthStateChange((firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);

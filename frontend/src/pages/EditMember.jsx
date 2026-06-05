@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { 
   FiArrowLeft, 
@@ -55,7 +55,7 @@ const EditMember = () => {
         setMembers(data);
         setLoadingMembers(false);
       },
-      (error) => {
+      () => {
         toast.error("Failed to fetch registry data.");
         setLoadingMembers(false);
       }
@@ -73,17 +73,19 @@ const EditMember = () => {
   
   useEffect(() => {
     if (activeMember) {
-      setFormData({
-        name: activeMember.name || "",
-        address: activeMember.address || "",
-        gender: activeMember.gender || "",
-        dob: activeMember.dob || "",
-        mobileNumber: activeMember.mobileNumber || "",
-        bloodGroup: activeMember.bloodGroup || "",
-        remarks: activeMember.remarks || "",
-        status: activeMember.status || "Active"
+      Promise.resolve().then(() => {
+        setFormData({
+          name: activeMember.name || "",
+          address: activeMember.address || "",
+          gender: activeMember.gender || "",
+          dob: activeMember.dob || "",
+          mobileNumber: activeMember.mobileNumber || "",
+          bloodGroup: activeMember.bloodGroup || "",
+          remarks: activeMember.remarks || "",
+          status: activeMember.status || "Active"
+        });
+        setFormErrors({});
       });
-      setFormErrors({});
     }
   }, [activeMember]);
 

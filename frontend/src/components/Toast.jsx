@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import { FiCheckCircle, FiAlertCircle, FiInfo, FiX } from "react-icons/fi";
 import styles from "./Toast.module.css";
 
@@ -6,18 +6,6 @@ const ToastContext = createContext(null);
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
-
-  const addToast = useCallback((message, type = "success", duration = 4000) => {
-    const id = Date.now() + Math.random().toString(36).substr(2, 9);
-    
-    setToasts((prev) => [...prev, { id, message, type }]);
-
-    if (duration > 0) {
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
-    }
-  }, []);
 
   const removeToast = useCallback((id) => {
     setToasts((prev) =>
@@ -30,6 +18,18 @@ export const ToastProvider = ({ children }) => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, 200);
   }, []);
+
+  const addToast = useCallback((message, type = "success", duration = 4000) => {
+    const id = Date.now() + Math.random().toString(36).substr(2, 9);
+    
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    if (duration > 0) {
+      setTimeout(() => {
+        removeToast(id);
+      }, duration);
+    }
+  }, [removeToast]);
 
   const success = useCallback((msg, dur) => addToast(msg, "success", dur), [addToast]);
   const error = useCallback((msg, dur) => addToast(msg, "error", dur), [addToast]);

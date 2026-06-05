@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FiLock, FiUser, FiAlertCircle, FiDatabase } from "react-icons/fi";
+import { FiLock, FiUser, FiAlertCircle } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../components/Toast";
 import styles from "./Login.module.css";

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   FiUsers, 
@@ -86,18 +86,21 @@ const Dashboard = () => {
         </div>
 
         
-        <div className={`${styles.card} ${styles.cardLocked}`}>
+        <div className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Events & Activities</span>
             <FiCalendar className={styles.cardIcon} />
           </div>
           <div className={styles.cardBody}>
-            <span className={styles.cardValue}>0</span>
+            <span className={styles.cardValue}>Worksheets</span>
             <span className={styles.cardDesc}>
-              Upcoming parish & youth events scheduled
+              Parish events, surplus analysis, income and expense worksheets
             </span>
           </div>
-          <span className={styles.badge}>Coming Soon</span>
+          <Link to="/financial-accounts/events" className={styles.cardLink}>
+            <span>Manage events</span>
+            <FiArrowRight size={14} />
+          </Link>
         </div>
       </div>
     </div>

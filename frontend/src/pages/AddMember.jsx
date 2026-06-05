@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   FiArrowLeft, 
@@ -6,8 +6,7 @@ import {
   FiUploadCloud, 
   FiCheckCircle, 
   FiAlertTriangle, 
-  FiTrash2, 
-  FiX 
+  FiTrash2 
 } from "react-icons/fi";
 import { memberService } from "../services/memberService";
 import { downloadImportTemplate, parseImportExcel } from "../utils/excelUtils";
@@ -42,13 +41,11 @@ const AddMember = () => {
   const [dragActive, setDragActive] = useState(false);
 
   
-  const [members, setMembers] = useState([]);
   const [currentCounter, setCurrentCounter] = useState(0);
 
   useEffect(() => {
     const unsubscribe = memberService.subscribeMembers(
       (data) => {
-        setMembers(data);
         const maxSerial = data.length > 0 ? Math.max(...data.map(m => m.serialNumber || 0)) : 0;
         setCurrentCounter(maxSerial);
       },
@@ -133,7 +130,7 @@ const AddMember = () => {
     try {
       downloadImportTemplate();
       toast.success("Excel template downloaded.");
-    } catch (err) {
+    } catch {
       toast.error("Failed to download template.");
     }
   };
