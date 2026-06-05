@@ -124,12 +124,16 @@ const Layout = () => {
               <FiUsers size={18} />
               <span>Membership</span>
             </NavLink>
-
-            
-            <div className={`${styles.navItem} ${styles.navItemDisabled}`} title="Coming soon">
-              <FiUsers size={18} style={{ opacity: 0.5 }} />
-              <span>Accounts (Soon)</span>
-            </div>
+            <NavLink 
+              to="/financial-accounts/fixed-deposits" 
+              className={({ isActive }) => 
+                isActive ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem
+              }
+              onClick={closeSidebar}
+            >
+              <FiDatabase size={18} />
+              <span>Fixed Deposits</span>
+            </NavLink>
             <div className={`${styles.navItem} ${styles.navItemDisabled}`} title="Coming soon">
               <FiUsers size={18} style={{ opacity: 0.5 }} />
               <span>Events (Soon)</span>
