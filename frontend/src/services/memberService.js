@@ -4,10 +4,12 @@ import {
   runTransaction, 
   query, 
   orderBy, 
-  onSnapshot 
+  onSnapshot,
+  updateDoc,
+  getDocs,
+  writeBatch
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { authService } from "./authService";
 
 const isFirebaseConfigured = !!import.meta.env.VITE_FIREBASE_API_KEY;
 
@@ -82,6 +84,7 @@ export const memberService = {
           const newMember = {
             id: `mock-member-${Date.now()}`,
             serialNumber: nextSerialNumber,
+            status: "Active",
             ...memberData,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
@@ -121,7 +124,8 @@ export const memberService = {
           mobileNumber: memberData.mobileNumber.trim(),
           bloodGroup: memberData.bloodGroup,
           remarks: memberData.remarks ? memberData.remarks.trim() : "",
-          createdAt: new Date().toISOString(), // Use ISO string or serverTimestamp. Since transactions are atomic, ISO string is fine and works offline-mode/locally.
+          status: "Active",
+          createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
 
@@ -167,6 +171,7 @@ export const memberService = {
               mobileNumber: memberData.mobileNumber.trim(),
               bloodGroup: memberData.bloodGroup,
               remarks: memberData.remarks ? memberData.remarks.trim() : "",
+              status: "Active",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             });
@@ -182,7 +187,7 @@ export const memberService = {
     }
 
     try {
-      // Chunk imports in batches of 150 members to comfortably stay under Firestore's 500 operations per transaction limit (1 counter update + 150 writes = 151 operations)
+      // Chunk imports in batches of 150 members to comfortably stay under Firestore's 500 operations per transaction limit
       const chunkSize = 150;
       const chunks = [];
       for (let i = 0; i < membersList.length; i += chunkSize) {
@@ -214,6 +219,7 @@ export const memberService = {
               mobileNumber: memberData.mobileNumber.trim(),
               bloodGroup: memberData.bloodGroup,
               remarks: memberData.remarks ? memberData.remarks.trim() : "",
+              status: "Active",
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             };
@@ -227,6 +233,136 @@ export const memberService = {
     } catch (error) {
       console.error("Firestore transaction error during bulk import:", error);
       throw new Error(`Bulk import failed: ${error.message}`);
+    }
+  },
+
+  /**
+   * Updates an existing member's information.
+   */
+  updateMember: async (memberId, memberData) => {
+    if (!isFirebaseConfigured) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          const members = getLocalMembers();
+          const idx = members.findIndex((m) => m.id === memberId);
+          if (idx === -1) {
+            reject(new Error("Member not found in local registry."));
+            return;
+          }
+          members[idx] = {
+            ...members[idx],
+            name: memberData.name.trim(),
+            address: memberData.address.trim(),
+            gender: memberData.gender,
+            dob: memberData.dob,
+            mobileNumber: memberData.mobileNumber.trim(),
+            bloodGroup: memberData.bloodGroup,
+            remarks: memberData.remarks ? memberData.remarks.trim() : "",
+            status: memberData.status || "Active",
+            updatedAt: new Date().toISOString()
+          };
+          saveLocalMembers(members);
+          resolve(members[idx]);
+        }, 500);
+      });
+    }
+
+    try {
+      const memberRef = doc(db, "members", memberId);
+      const updateData = {
+        name: memberData.name.trim(),
+        address: memberData.address.trim(),
+        gender: memberData.gender,
+        dob: memberData.dob,
+        mobileNumber: memberData.mobileNumber.trim(),
+        bloodGroup: memberData.bloodGroup,
+        remarks: memberData.remarks ? memberData.remarks.trim() : "",
+        status: memberData.status || "Active",
+        updatedAt: new Date().toISOString()
+      };
+      await updateDoc(memberRef, updateData);
+      return { id: memberId, ...updateData };
+    } catch (error) {
+      console.error("Firestore update error:", error);
+      throw new Error(`Failed to update member details: ${error.message}`);
+    }
+  },
+
+  /**
+   * Toggles a member's status between Active and Inactive.
+   */
+  toggleMemberStatus: async (memberId, currentStatus) => {
+    const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
+    
+    if (!isFirebaseConfigured) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          const members = getLocalMembers();
+          const idx = members.findIndex((m) => m.id === memberId);
+          if (idx === -1) {
+            reject(new Error("Member not found in local registry."));
+            return;
+          }
+          members[idx].status = nextStatus;
+          members[idx].updatedAt = new Date().toISOString();
+          saveLocalMembers(members);
+          resolve(members[idx]);
+        }, 500);
+      });
+    }
+
+    try {
+      const memberRef = doc(db, "members", memberId);
+      await updateDoc(memberRef, { 
+        status: nextStatus,
+        updatedAt: new Date().toISOString()
+      });
+      return { id: memberId, status: nextStatus };
+    } catch (error) {
+      console.error("Firestore status toggle error:", error);
+      throw new Error(`Failed to toggle member status: ${error.message}`);
+    }
+  },
+
+  /**
+   * Deletes all members and resets the auto-increment serial counter to 0.
+   */
+  deleteAllMembers: async () => {
+    if (!isFirebaseConfigured) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          localStorage.setItem(LOCAL_MEMBERS_KEY, JSON.stringify([]));
+          localStorage.setItem(LOCAL_COUNTER_KEY, "0");
+          notifySubscribers();
+          resolve();
+        }, 600);
+      });
+    }
+
+    try {
+      const counterRef = doc(db, "metadata", "memberCounter");
+      const membersQuery = query(collection(db, "members"));
+      const querySnapshot = await getDocs(membersQuery);
+      
+      const docs = querySnapshot.docs;
+      const chunkSize = 400; // Chunk batch operations comfortably under 500 limit
+      
+      for (let i = 0; i < docs.length; i += chunkSize) {
+        const batch = writeBatch(db);
+        const chunk = docs.slice(i, i + chunkSize);
+        chunk.forEach((d) => {
+          batch.delete(d.ref);
+        });
+        await batch.commit();
+      }
+
+      // Reset sequence counter back to 0
+      const batchFinal = writeBatch(db);
+      batchFinal.set(counterRef, { counterValue: 0 }, { merge: true });
+      await batchFinal.commit();
+    } catch (error) {
+      console.error("Firestore reset error:", error);
+      throw new Error(`Failed to wipe registry: ${error.message}`);
     }
   }
 };

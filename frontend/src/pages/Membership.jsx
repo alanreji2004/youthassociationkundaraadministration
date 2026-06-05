@@ -8,12 +8,14 @@ import {
   FiChevronRight, 
   FiArrowUp, 
   FiArrowDown, 
-  FiUsers,
-  FiSlash
+  FiSlash,
+  FiEdit3,
+  FiTrash2
 } from "react-icons/fi";
 import { memberService } from "../services/memberService";
 import { exportMembersToExcel } from "../utils/excelUtils";
 import { useToast } from "../components/Toast";
+import ConfirmationModal from "../components/ConfirmationModal";
 import styles from "./Membership.module.css";
 
 const ITEMS_PER_PAGE = 10;
@@ -27,6 +29,7 @@ const Membership = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [bloodFilter, setBloodFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); // Default to empty (all)
 
   // Sorting State
   const [sortConfig, setSortConfig] = useState({
@@ -36,6 +39,11 @@ const Membership = () => {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Wiping Registry Double Confirmation State
+  const [isDeleteModal1Open, setIsDeleteModal1Open] = useState(false);
+  const [isDeleteModal2Open, setIsDeleteModal2Open] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Subscribe to real-time member data from Firestore
   useEffect(() => {
@@ -56,7 +64,7 @@ const Membership = () => {
   // Reset pagination on search or filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, genderFilter, bloodFilter]);
+  }, [searchQuery, genderFilter, bloodFilter, statusFilter]);
 
   // Filter & Search Logic
   const filteredMembers = useMemo(() => {
@@ -77,19 +85,23 @@ const Membership = () => {
       // 3. Blood Group Match
       const matchesBlood = !bloodFilter || member.bloodGroup === bloodFilter;
 
-      return matchesSearch && matchesGender && matchesBlood;
+      // 4. Status Match (Defaults missing to Active)
+      const memberStatus = member.status || "Active";
+      const matchesStatus = !statusFilter || memberStatus === statusFilter;
+
+      return matchesSearch && matchesGender && matchesBlood && matchesStatus;
     });
-  }, [members, searchQuery, genderFilter, bloodFilter]);
+  }, [members, searchQuery, genderFilter, bloodFilter, statusFilter]);
 
   // Sorting Logic
   const sortedMembers = useMemo(() => {
     const sortableItems = [...filteredMembers];
     if (sortConfig.key) {
       sortableItems.sort((a, b) => {
-        let valA = a[sortConfig.key];
-        let valB = b[sortConfig.key];
+        let valA = a[sortConfig.key] || "";
+        let valB = b[sortConfig.key] || "";
 
-        // Format names to lowercase for alphabetic sorting
+        // Format names/status to lowercase for alphabetic sorting
         if (typeof valA === "string") valA = valA.toLowerCase();
         if (typeof valB === "string") valB = valB.toLowerCase();
 
@@ -134,6 +146,21 @@ const Membership = () => {
     }
   };
 
+  // Delete all members execution handler
+  const handleDeleteAllConfirm = async () => {
+    setIsDeleteModal2Open(false);
+    setIsDeleting(true);
+    toast.info("Wiping entire database registry...", 0); // Keep open until finished
+    try {
+      await memberService.deleteAllMembers();
+      toast.success("All member records deleted and counter reset to 0.");
+    } catch (err) {
+      toast.error(err.message || "Failed to clear member database.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key) return null;
     return (
@@ -158,6 +185,7 @@ const Membership = () => {
             onClick={handleExport}
             className={`${styles.btn} ${styles.btnSecondary}`}
             title="Download full database snapshot"
+            disabled={isDeleting}
           >
             <FiDownload />
             <span>Export Excel</span>
@@ -179,6 +207,7 @@ const Membership = () => {
             placeholder="Search by name, phone number, address..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            disabled={isDeleting}
           />
         </div>
         
@@ -188,6 +217,7 @@ const Membership = () => {
             value={genderFilter}
             onChange={(e) => setGenderFilter(e.target.value)}
             aria-label="Filter by Gender"
+            disabled={isDeleting}
           >
             <option value="">All Genders</option>
             <option value="Male">Male</option>
@@ -200,6 +230,7 @@ const Membership = () => {
             value={bloodFilter}
             onChange={(e) => setBloodFilter(e.target.value)}
             aria-label="Filter by Blood Group"
+            disabled={isDeleting}
           >
             <option value="">All Blood Groups</option>
             <option value="A+">A+</option>
@@ -210,6 +241,18 @@ const Membership = () => {
             <option value="O-">O-</option>
             <option value="AB+">AB+</option>
             <option value="AB-">AB-</option>
+          </select>
+
+          <select
+            className={styles.selectFilter}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter by Status"
+            disabled={isDeleting}
+          >
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
           </select>
         </div>
       </div>
@@ -229,15 +272,17 @@ const Membership = () => {
                   <th className={styles.th}>Date of Birth</th>
                   <th className={styles.th}>Mobile</th>
                   <th className={styles.th}>Blood Group</th>
+                  <th className={styles.th}>Status</th>
                   <th className={styles.th}>Remarks</th>
+                  <th className={styles.th}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {[...Array(5)].map((_, i) => (
                   <tr key={i} className={styles.tr}>
-                    {[...Array(8)].map((_, j) => (
+                    {[...Array(10)].map((_, j) => (
                       <td key={j} className={styles.td}>
-                        <span className="skeleton" style={{ height: "16px", width: j === 2 ? "180px" : j === 1 ? "120px" : "60px" }} />
+                        <span className="skeleton" style={{ height: "16px", width: j === 2 ? "150px" : j === 1 ? "100px" : "50px" }} />
                       </td>
                     ))}
                   </tr>
@@ -296,7 +341,14 @@ const Membership = () => {
                     >
                       Blood Group {renderSortIcon("bloodGroup")}
                     </th>
+                    <th 
+                      className={`${styles.th} ${styles.thSortable}`} 
+                      onClick={() => handleSort("status")}
+                    >
+                      Status {renderSortIcon("status")}
+                    </th>
                     <th className={styles.th}>Remarks</th>
+                    <th className={styles.th}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -327,8 +379,31 @@ const Membership = () => {
                           {member.bloodGroup}
                         </span>
                       </td>
-                      <td className={styles.td} style={{ fontSize: "13px", maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={member.remarks}>
+                      <td className={styles.td}>
+                        <span
+                          className={`${styles.statusBadge} ${
+                            (member.status || "Active") === "Active"
+                              ? styles.statusActive
+                              : styles.statusInactive
+                          }`}
+                        >
+                          <span className={styles.statusDot} />
+                          <span>{member.status || "Active"}</span>
+                        </span>
+                      </td>
+                      <td className={styles.td} style={{ fontSize: "13px", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={member.remarks}>
                         {member.remarks || <span style={{ color: "#d1d5db" }}>&mdash;</span>}
+                      </td>
+                      <td className={styles.td}>
+                        <Link
+                          to={`/membership/edit/${member.id}`}
+                          className={styles.btnTableEdit}
+                          aria-label={`Edit details of ${member.name}`}
+                          disabled={isDeleting}
+                        >
+                          <FiEdit3 style={{ marginRight: "4px" }} />
+                          <span>Edit</span>
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -348,7 +423,7 @@ const Membership = () => {
                 <button
                   className={styles.pageBtn}
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || isDeleting}
                   aria-label="Previous Page"
                 >
                   <FiChevronLeft size={16} style={{ display: "block" }} />
@@ -361,7 +436,7 @@ const Membership = () => {
                 <button
                   className={styles.pageBtn}
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPages || isDeleting}
                   aria-label="Next Page"
                 >
                   <FiChevronRight size={16} style={{ display: "block" }} />
@@ -371,6 +446,54 @@ const Membership = () => {
           </>
         )}
       </div>
+
+      {/* DANGER ACTION ZONE (Only visible when authenticated and members exist) */}
+      {!loading && members.length > 0 && (
+        <div className={styles.dangerZone}>
+          <div className={styles.dangerZoneHeader}>
+            <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
+            <p className={styles.dangerZoneDesc}>
+              These administrative operations are destructive and irreversible. Verify your intent before proceeding.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnDangerAction}`}
+            onClick={() => setIsDeleteModal1Open(true)}
+            disabled={isDeleting}
+          >
+            <FiTrash2 />
+            <span>Wipe Registry Database</span>
+          </button>
+        </div>
+      )}
+
+      {/* Wipe Database Modal 1 (First confirmation) */}
+      <ConfirmationModal
+        isOpen={isDeleteModal1Open}
+        title="Wipe Database Registry?"
+        message="Are you sure you want to delete ALL member records from the registry database? This will permanently wipe all entries from Firestore and cannot be undone."
+        onConfirm={() => {
+          setIsDeleteModal1Open(false);
+          setIsDeleteModal2Open(true);
+        }}
+        onCancel={() => setIsDeleteModal1Open(false)}
+        confirmText="Yes, Proceed"
+        cancelText="Cancel"
+        isDanger={true}
+      />
+
+      {/* Wipe Database Modal 2 (Second final confirmation) */}
+      <ConfirmationModal
+        isOpen={isDeleteModal2Open}
+        title="FINAL WARNING: Wipe Member Database?"
+        message="This is the final confirmation. If you proceed, all records will be deleted and the serial number counter will reset back to 0. Click 'Confirm Wipe' to destroy all data."
+        onConfirm={handleDeleteAllConfirm}
+        onCancel={() => setIsDeleteModal2Open(false)}
+        confirmText="Confirm Wipe"
+        cancelText="Cancel"
+        isDanger={true}
+      />
     </div>
   );
 };

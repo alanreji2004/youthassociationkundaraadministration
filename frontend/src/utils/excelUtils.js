@@ -107,6 +107,7 @@ export const exportMembersToExcel = (members) => {
     "Date of Birth": member.dob,
     "Mobile Number": member.mobileNumber,
     "Blood Group": member.bloodGroup,
+    "Status": member.status || "Active",
     "Remarks": member.remarks || ""
   }));
 
@@ -122,6 +123,7 @@ export const exportMembersToExcel = (members) => {
     { wch: 15 }, // Date of Birth
     { wch: 18 }, // Mobile Number
     { wch: 12 }, // Blood Group
+    { wch: 12 }, // Status
     { wch: 30 }  // Remarks
   ];
 

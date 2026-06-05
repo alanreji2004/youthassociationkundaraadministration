@@ -6,6 +6,7 @@ import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Membership from "../pages/Membership";
 import AddMember from "../pages/AddMember";
+import EditMember from "../pages/EditMember";
 
 const AppRoutes = () => {
   return (
@@ -26,6 +27,8 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="membership" element={<Membership />} />
         <Route path="membership/add" element={<AddMember />} />
+        <Route path="membership/edit/:id" element={<EditMember />} />
+        <Route path="membership/edit" element={<EditMember />} />
       </Route>
 
       {/* Catch-all route to redirect back to base */}

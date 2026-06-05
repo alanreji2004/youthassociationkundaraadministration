@@ -315,3 +315,107 @@
     flex-wrap: nowrap;
   }
 }
+
+/* Table Edit Actions */
+.btnTableEdit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.btnTableEdit:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+/* Status Badges */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.statusActive {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: var(--color-success-border);
+}
+
+.statusInactive {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.statusActive .statusDot {
+  background-color: var(--color-success);
+}
+
+.statusInactive .statusDot {
+  background-color: #4b5563;
+}
+
+/* Danger Zone */
+.dangerZone {
+  margin-top: var(--space-12);
+  border: 1px solid var(--color-error-border);
+  background-color: var(--color-error-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dangerZoneHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.dangerZoneTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-error);
+}
+
+.dangerZoneDesc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.btnDangerAction {
+  background-color: var(--color-error);
+  color: var(--text-inverse);
+  align-self: flex-start;
+  transition: background-color var(--transition-fast);
+}
+
+.btnDangerAction:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.btnDangerAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
