@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiUploadCloud, FiX } from "react-icons/fi";
+import { FiArrowLeft } from "react-icons/fi";
 import { fdService } from "../services/fdService";
 import { useToast } from "../components/Toast";
 import styles from "./AddFixedDeposit.module.css";
@@ -10,18 +10,16 @@ const AddFixedDeposit = () => {
   const toast = useToast();
 
   const [formData, setFormData] = useState({
+    fdNumber: "",
     bankName: "",
     branch: "",
     principalAmount: "",
     interestRate: "",
     depositDate: "",
     maturityDate: "",
-    maturityAmount: "",
-    nominee: "",
-    remarks: ""
+    maturityAmount: ""
   });
 
-  const [uploadedFile, setUploadedFile] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,34 +31,9 @@ const AddFixedDeposit = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const fileType = file.name.split(".").pop().toLowerCase();
-    if (!["pdf", "jpg", "jpeg", "png"].includes(fileType)) {
-      toast.error("Unsupported file type. Please upload PDF, JPG, or PNG.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadedFile({
-        name: file.name,
-        type: file.type,
-        url: reader.result
-      });
-      toast.success("Document attached successfully.");
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeFile = () => {
-    setUploadedFile(null);
-  };
-
   const validateForm = () => {
     const errors = {};
+    if (!formData.fdNumber.trim()) errors.fdNumber = "FD Number is required";
     if (!formData.bankName.trim()) errors.bankName = "Bank name is required";
     if (!formData.branch.trim()) errors.branch = "Branch is required";
     
@@ -92,8 +65,6 @@ const AddFixedDeposit = () => {
       errors.maturityAmount = "Maturity amount should be greater than principal amount";
     }
 
-    if (!formData.nominee.trim()) errors.nominee = "Nominee / Responsible person is required";
-
     return errors;
   };
 
@@ -108,21 +79,7 @@ const AddFixedDeposit = () => {
 
     setIsSubmitting(true);
     try {
-      const newFd = await fdService.addFixedDeposit(formData);
-      if (uploadedFile) {
-        let typeGroup = "Other Attachments";
-        const extension = uploadedFile.name.split(".").pop().toLowerCase();
-        if (extension === "pdf") {
-          typeGroup = "Bank Letter";
-        } else if (["jpg", "jpeg", "png"].includes(extension)) {
-          typeGroup = "FD Receipt";
-        }
-        await fdService.uploadFdDocument(newFd.id, {
-          name: uploadedFile.name,
-          type: typeGroup,
-          url: uploadedFile.url
-        });
-      }
+      await fdService.addFixedDeposit(formData);
       toast.success("Fixed Deposit added successfully!");
       navigate("/financial-accounts/fixed-deposits");
     } catch (err) {
@@ -152,13 +109,17 @@ const AddFixedDeposit = () => {
 
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <span className={styles.label}>FD Number</span>
+              <label htmlFor="fdNumber" className={styles.label}>FD Number *</label>
               <input
                 type="text"
-                className={styles.input}
-                value="Auto-generated on save"
-                disabled
+                id="fdNumber"
+                name="fdNumber"
+                className={`${styles.input} ${formErrors.fdNumber ? styles.inputError : ""}`}
+                placeholder="e.g. FD-2026-001"
+                value={formData.fdNumber}
+                onChange={handleChange}
               />
+              {formErrors.fdNumber && <span className={styles.errorText}>{formErrors.fdNumber}</span>}
             </div>
 
             <div className={styles.formGroup}>
@@ -265,69 +226,6 @@ const AddFixedDeposit = () => {
                 onChange={handleChange}
               />
               {formErrors.maturityDate && <span className={styles.errorText}>{formErrors.maturityDate}</span>}
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="nominee" className={styles.label}>Nominee / Responsible Person *</label>
-              <input
-                type="text"
-                id="nominee"
-                name="nominee"
-                className={`${styles.input} ${formErrors.nominee ? styles.inputError : ""}`}
-                placeholder="Person in charge of handling"
-                value={formData.nominee}
-                onChange={handleChange}
-              />
-              {formErrors.nominee && <span className={styles.errorText}>{formErrors.nominee}</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Supporting Materials</h2>
-          <p className={styles.cardSubtitle}>Additional comments and certificate documents</p>
-
-          <div className={styles.formGrid}>
-            <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-              <label htmlFor="remarks" className={styles.label}>Remarks / Administrative Notes</label>
-              <textarea
-                id="remarks"
-                name="remarks"
-                rows="3"
-                className={styles.textarea}
-                placeholder="Notes for audit trails..."
-                value={formData.remarks}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-              <span className={styles.label}>Document Upload</span>
-              {!uploadedFile ? (
-                <label className={styles.uploadZone}>
-                  <FiUploadCloud className={styles.uploadIcon} />
-                  <span className={styles.uploadMainText}>Click to upload FD Receipt or Bank Letter</span>
-                  <span className={styles.uploadSubText}>Supports PDF, JPG, PNG up to 5MB</span>
-                  <input
-                    type="file"
-                    className={styles.fileInput}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={handleFileChange}
-                  />
-                </label>
-              ) : (
-                <div className={styles.uploadedFileBar}>
-                  <span className={styles.fileName}>{uploadedFile.name}</span>
-                  <button
-                    type="button"
-                    className={styles.removeFileBtn}
-                    onClick={removeFile}
-                    aria-label="Remove uploaded file"
-                  >
-                    <FiX size={18} />
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>

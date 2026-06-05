@@ -10,6 +10,7 @@ import EditMember from "../pages/EditMember";
 import FixedDepositsDashboard from "../pages/FixedDepositsDashboard";
 import AddFixedDeposit from "../pages/AddFixedDeposit";
 import FixedDepositDetails from "../pages/FixedDepositDetails";
+import FinancialAccounts from "../pages/FinancialAccounts";
 
 const AppRoutes = () => {
   return (
@@ -31,6 +32,7 @@ const AppRoutes = () => {
         <Route path="membership/edit/:id" element={<EditMember />} />
         <Route path="membership/edit" element={<EditMember />} />
         
+        <Route path="financial-accounts" element={<FinancialAccounts />} />
         <Route path="financial-accounts/fixed-deposits" element={<FixedDepositsDashboard />} />
         <Route path="financial-accounts/fixed-deposits/new" element={<AddFixedDeposit />} />
         <Route path="financial-accounts/fixed-deposits/:fdId" element={<FixedDepositDetails />} />

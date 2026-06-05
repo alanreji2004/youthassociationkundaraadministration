@@ -46,9 +46,9 @@ const FixedDepositDetails = () => {
   const [txForm, setTxForm] = useState({ date: "", type: "Interest Credit", amount: "", description: "", referenceNumber: "" });
   const [noteForm, setNoteForm] = useState({ content: "" });
   const [docForm, setDocForm] = useState({ type: "FD Receipt", name: "", url: "" });
-  const [renewForm, setRenewForm] = useState({ bankName: "", branch: "", principalAmount: "", interestRate: "", depositDate: "", maturityDate: "", maturityAmount: "", nominee: "", remarks: "" });
+  const [renewForm, setRenewForm] = useState({ fdNumber: "", bankName: "", branch: "", principalAmount: "", interestRate: "", depositDate: "", maturityDate: "", maturityAmount: "", remarks: "" });
   const [closeForm, setCloseForm] = useState({ closureDate: "", finalAmountReceived: "", remarks: "" });
-  const [editForm, setEditForm] = useState({ bankName: "", branch: "", principalAmount: "", interestRate: "", depositDate: "", maturityDate: "", maturityAmount: "", nominee: "", remarks: "" });
+  const [editForm, setEditForm] = useState({ bankName: "", branch: "", principalAmount: "", interestRate: "", depositDate: "", maturityDate: "", maturityAmount: "", remarks: "" });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -138,7 +138,6 @@ const FixedDepositDetails = () => {
       depositDate: fd.depositDate,
       maturityDate: fd.maturityDate,
       maturityAmount: fd.maturityAmount,
-      nominee: fd.nominee,
       remarks: fd.remarks || ""
     });
     setShowEditModal(true);
@@ -148,6 +147,7 @@ const FixedDepositDetails = () => {
   const handleOpenRenewModal = () => {
     if (!fd) return;
     setRenewForm({
+      fdNumber: "",
       bankName: fd.bankName,
       branch: fd.branch,
       principalAmount: fd.maturityAmount,
@@ -155,7 +155,6 @@ const FixedDepositDetails = () => {
       depositDate: fd.maturityDate,
       maturityDate: "",
       maturityAmount: "",
-      nominee: fd.nominee,
       remarks: ""
     });
     setShowRenewModal(true);
@@ -203,7 +202,7 @@ const FixedDepositDetails = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (!editForm.bankName.trim() || !editForm.branch.trim() || parseFloat(editForm.principalAmount) <= 0 || parseFloat(editForm.interestRate) < 0 || !editForm.depositDate || !editForm.maturityDate || parseFloat(editForm.maturityAmount) <= 0 || !editForm.nominee.trim()) {
+    if (!editForm.bankName.trim() || !editForm.branch.trim() || parseFloat(editForm.principalAmount) <= 0 || parseFloat(editForm.interestRate) < 0 || !editForm.depositDate || !editForm.maturityDate || parseFloat(editForm.maturityAmount) <= 0) {
       toast.error("Please fill all fields correctly.");
       return;
     }
@@ -221,7 +220,7 @@ const FixedDepositDetails = () => {
 
   const handleRenewSubmit = async (e) => {
     e.preventDefault();
-    if (!renewForm.bankName.trim() || !renewForm.branch.trim() || parseFloat(renewForm.principalAmount) <= 0 || parseFloat(renewForm.interestRate) < 0 || !renewForm.depositDate || !renewForm.maturityDate || parseFloat(renewForm.maturityAmount) <= 0 || !renewForm.nominee.trim()) {
+    if (!renewForm.fdNumber.trim() || !renewForm.bankName.trim() || !renewForm.branch.trim() || parseFloat(renewForm.principalAmount) <= 0 || parseFloat(renewForm.interestRate) < 0 || !renewForm.depositDate || !renewForm.maturityDate || parseFloat(renewForm.maturityAmount) <= 0) {
       toast.error("Please fill all fields correctly.");
       return;
     }
@@ -500,10 +499,6 @@ const FixedDepositDetails = () => {
                   <span>{daysRemaining} days remaining</span>
                 )}
               </span>
-            </div>
-            <div className={styles.metaRow}>
-              <span className={styles.metaLabel}>Nominee / Custodian:</span>
-              <span className={styles.metaValue}>{fd.nominee}</span>
             </div>
             <div className={styles.metaRow}>
               <span className={styles.metaLabel}>Created By:</span>
@@ -872,15 +867,6 @@ const FixedDepositDetails = () => {
                     required
                   />
                 </div>
-                <div className={styles.fg}>
-                  <label>Nominee / Responsible Person</label>
-                  <input
-                    type="text"
-                    value={editForm.nominee}
-                    onChange={(e) => setEditForm({ ...editForm, nominee: e.target.value })}
-                    required
-                  />
-                </div>
                 <div className={`${styles.fg} ${styles.fgFull}`}>
                   <label>Remarks</label>
                   <textarea
@@ -917,6 +903,15 @@ const FixedDepositDetails = () => {
                 <strong>Rollover Workflow:</strong> This will flag the current deposit as <em>Renewed</em>, and initialize a new <em>Active</em> child certificate linked to it.
               </p>
               <div className={styles.modalGrid}>
+                <div className={styles.fg}>
+                  <label>New FD Number *</label>
+                  <input
+                    type="text"
+                    value={renewForm.fdNumber}
+                    onChange={(e) => setRenewForm({ ...renewForm, fdNumber: e.target.value })}
+                    required
+                  />
+                </div>
                 <div className={styles.fg}>
                   <label>Bank Name</label>
                   <input
@@ -980,15 +975,6 @@ const FixedDepositDetails = () => {
                     step="any"
                     value={renewForm.maturityAmount}
                     onChange={(e) => setRenewForm({ ...renewForm, maturityAmount: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className={styles.fg}>
-                  <label>Nominee / Responsible Person</label>
-                  <input
-                    type="text"
-                    value={renewForm.nominee}
-                    onChange={(e) => setRenewForm({ ...renewForm, nominee: e.target.value })}
                     required
                   />
                 </div>

@@ -125,14 +125,14 @@ const Layout = () => {
               <span>Membership</span>
             </NavLink>
             <NavLink 
-              to="/financial-accounts/fixed-deposits" 
+              to="/financial-accounts" 
               className={({ isActive }) => 
                 isActive ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem
               }
               onClick={closeSidebar}
             >
               <FiDatabase size={18} />
-              <span>Fixed Deposits</span>
+              <span>Accounts</span>
             </NavLink>
             <div className={`${styles.navItem} ${styles.navItemDisabled}`} title="Coming soon">
               <FiUsers size={18} style={{ opacity: 0.5 }} />

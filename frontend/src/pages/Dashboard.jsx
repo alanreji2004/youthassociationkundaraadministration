@@ -68,19 +68,21 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        
-        <div className={`${styles.card} ${styles.cardLocked}`}>
+        <div className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Financial Accounts</span>
             <FaRupeeSign className={styles.cardIcon} />
           </div>
           <div className={styles.cardBody}>
-            <span className={styles.cardValue}>₹0.00</span>
+            <span className={styles.cardValue}>Treasury</span>
             <span className={styles.cardDesc}>
-              Income & Expense ledger tracking
+              Fixed deposit certificates, interest profiles, and audit trails
             </span>
           </div>
-          <span className={styles.badge}>Coming Soon</span>
+          <Link to="/financial-accounts" className={styles.cardLink}>
+            <span>Manage accounts</span>
+            <FiArrowRight size={14} />
+          </Link>
         </div>
 
         

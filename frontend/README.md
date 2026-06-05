@@ -116,18 +116,39 @@ Paste the following configurations under your **Firestore Database -> Rules** ta
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check auth state
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Rules for members collection
     match /members/{memberId} {
       allow read, write: if isAuthenticated();
     }
 
-    // Rules for metadata counters
     match /metadata/{metadataId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /fixedDeposits/{fdId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /fdTransactions/{txId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /fdEvents/{eventId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /fdNotes/{noteId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /fdDocuments/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /fdAuditLogs/{logId} {
       allow read, write: if isAuthenticated();
     }
   }

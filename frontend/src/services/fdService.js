@@ -263,10 +263,7 @@ export const fdService = {
       return new Promise((resolve) => {
         setTimeout(() => {
           const fds = getLocalData(LOCAL_FDS_KEY);
-          let currentCounter = parseInt(localStorage.getItem(LOCAL_FD_COUNTER_KEY) || "0", 10);
-          const nextVal = currentCounter + 1;
-          const year = new Date().getFullYear();
-          const fdNumber = `FD-${year}-${String(nextVal).padStart(3, "0")}`;
+          const fdNumber = fdData.fdNumber.trim();
           
           const newFd = {
             id: `local-fd-${Date.now()}`,
@@ -278,7 +275,6 @@ export const fdService = {
             depositDate: fdData.depositDate,
             maturityDate: fdData.maturityDate,
             maturityAmount: parseFloat(fdData.maturityAmount),
-            nominee: fdData.nominee.trim(),
             remarks: fdData.remarks ? fdData.remarks.trim() : "",
             status: "Active",
             parentFdNumber: fdData.parentFdNumber || null,
@@ -334,18 +330,7 @@ export const fdService = {
 
     try {
       const result = await runTransaction(db, async (transaction) => {
-        const counterRef = doc(db, "metadata", "fdCounter");
-        const counterSnap = await transaction.get(counterRef);
-        
-        let currentCounter = 0;
-        if (counterSnap.exists()) {
-          currentCounter = counterSnap.data().counterValue || 0;
-        }
-
-        const nextVal = currentCounter + 1;
-        const year = new Date().getFullYear();
-        const fdNumber = `FD-${year}-${String(nextVal).padStart(3, "0")}`;
-
+        const fdNumber = fdData.fdNumber.trim();
         const fdCollectionRef = collection(db, "fixedDeposits");
         const newFdRef = doc(fdCollectionRef);
 
@@ -358,7 +343,6 @@ export const fdService = {
           depositDate: fdData.depositDate,
           maturityDate: fdData.maturityDate,
           maturityAmount: parseFloat(fdData.maturityAmount),
-          nominee: fdData.nominee.trim(),
           remarks: fdData.remarks ? fdData.remarks.trim() : "",
           status: "Active",
           parentFdNumber: fdData.parentFdNumber || null,
@@ -368,7 +352,6 @@ export const fdService = {
         };
 
         transaction.set(newFdRef, newFdData);
-        transaction.set(counterRef, { counterValue: nextVal }, { merge: true });
 
         const evRef = doc(collection(db, "fdEvents"));
         transaction.set(evRef, {
@@ -432,7 +415,6 @@ export const fdService = {
             depositDate: updatedFields.depositDate,
             maturityDate: updatedFields.maturityDate,
             maturityAmount: parseFloat(updatedFields.maturityAmount),
-            nominee: updatedFields.nominee.trim(),
             remarks: updatedFields.remarks ? updatedFields.remarks.trim() : ""
           };
 
@@ -474,7 +456,6 @@ export const fdService = {
           depositDate: updatedFields.depositDate,
           maturityDate: updatedFields.maturityDate,
           maturityAmount: parseFloat(updatedFields.maturityAmount),
-          nominee: updatedFields.nominee.trim(),
           remarks: updatedFields.remarks ? updatedFields.remarks.trim() : ""
         };
 
@@ -513,11 +494,7 @@ export const fdService = {
             return;
           }
 
-          let currentCounter = parseInt(localStorage.getItem(LOCAL_FD_COUNTER_KEY) || "0", 10);
-          const nextVal = currentCounter + 1;
-          const year = new Date().getFullYear();
-          const newFdNumber = `FD-${year}-${String(nextVal).padStart(3, "0")}`;
-
+          const newFdNumber = renewalData.fdNumber.trim();
           const oldFd = fds[idx];
           const parentNumber = oldFd.fdNumber;
           oldFd.status = "Renewed";
@@ -533,7 +510,6 @@ export const fdService = {
             depositDate: renewalData.depositDate,
             maturityDate: renewalData.maturityDate,
             maturityAmount: parseFloat(renewalData.maturityAmount),
-            nominee: renewalData.nominee.trim(),
             remarks: renewalData.remarks ? renewalData.remarks.trim() : "",
             status: "Active",
             parentFdNumber: parentNumber,
@@ -615,18 +591,7 @@ export const fdService = {
 
     try {
       const result = await runTransaction(db, async (transaction) => {
-        const counterRef = doc(db, "metadata", "fdCounter");
-        const counterSnap = await transaction.get(counterRef);
-        
-        let currentCounter = 0;
-        if (counterSnap.exists()) {
-          currentCounter = counterSnap.data().counterValue || 0;
-        }
-
-        const nextVal = currentCounter + 1;
-        const year = new Date().getFullYear();
-        const newFdNumber = `FD-${year}-${String(nextVal).padStart(3, "0")}`;
-
+        const newFdNumber = renewalData.fdNumber.trim();
         const parentRef = doc(db, "fixedDeposits", fdId);
         const parentSnap = await transaction.get(parentRef);
         if (!parentSnap.exists()) {
@@ -651,7 +616,6 @@ export const fdService = {
           depositDate: renewalData.depositDate,
           maturityDate: renewalData.maturityDate,
           maturityAmount: parseFloat(renewalData.maturityAmount),
-          nominee: renewalData.nominee.trim(),
           remarks: renewalData.remarks ? renewalData.remarks.trim() : "",
           status: "Active",
           parentFdNumber: parentNumber,
@@ -661,7 +625,6 @@ export const fdService = {
         };
 
         transaction.set(newFdRef, newFdData);
-        transaction.set(counterRef, { counterValue: nextVal }, { merge: true });
 
         const evParentRef = doc(collection(db, "fdEvents"));
         transaction.set(evParentRef, {
