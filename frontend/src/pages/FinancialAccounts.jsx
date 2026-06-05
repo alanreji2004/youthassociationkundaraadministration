@@ -35,13 +35,13 @@ const FinancialAccounts = () => {
           </div>
           <div className={styles.cardBody}>
             <p className={styles.cardDesc}>
-              Daily cash registers, banking operations, receipts, payments, and automated journal vouchers.
+              Daily cash registers, banking operations, receipts, payments, and vouchers.
             </p>
             <span className={styles.badge}>Coming Soon</span>
           </div>
         </div>
 
-        <div className={`${styles.card} ${styles.cardLocked}`}>
+        {/* <div className={`${styles.card} ${styles.cardLocked}`}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>Budgeting & Treasury</span>
             <FaRupeeSign className={styles.cardIcon} />
@@ -52,7 +52,7 @@ const FinancialAccounts = () => {
             </p>
             <span className={styles.badge}>Coming Soon</span>
           </div>
-        </div>
+        </div> */}
 
         <div className={`${styles.card} ${styles.cardLocked}`}>
           <div className={styles.cardHeader}>
