@@ -148,7 +148,7 @@ const Layout = () => {
           </nav>
 
           <div className={styles.sidebarFooter}>
-            <div>v1.0.0 &copy; 2026</div>
+            <div>v2.0.1 &copy; 2026</div>
           </div>
         </aside>
 
