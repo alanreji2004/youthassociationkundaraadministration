@@ -18,6 +18,7 @@ import EventsModule from "../pages/EventsModule";
 import EventDetails from "../pages/EventDetails";
 import ReportsModule from "../pages/ReportsModule";
 import FinanceSettings from "../pages/FinanceSettings";
+import Ordination from "../pages/Ordination";
 
 const AppRoutes = () => {
   return (
@@ -38,6 +39,7 @@ const AppRoutes = () => {
         <Route path="membership/add" element={<AddMember />} />
         <Route path="membership/edit/:id" element={<EditMember />} />
         <Route path="membership/edit" element={<EditMember />} />
+        <Route path="ordination" element={<Ordination />} />
         
         <Route path="events" element={<EventsModule />} />
         <Route path="events/:eventId" element={<EventDetails />} />
