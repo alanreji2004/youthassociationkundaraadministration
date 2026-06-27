@@ -18,7 +18,7 @@ const getLocalOrdinations = () => {
   const data = localStorage.getItem(LOCAL_ORDINATIONS_KEY);
   if (!data) return [];
   try {
-    return JSON.parse(data).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return JSON.parse(data).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   } catch {
     return [];
   }
@@ -45,7 +45,7 @@ export const ordinationService = {
     }
 
     const ordinationRef = collection(db, "ordinations");
-    const ordinationQuery = query(ordinationRef, orderBy("createdAt", "desc"));
+    const ordinationQuery = query(ordinationRef, orderBy("createdAt", "asc"));
     return onSnapshot(ordinationQuery, (snapshot) => {
       const ordinations = [];
       snapshot.forEach((docSnap) => {
@@ -67,7 +67,7 @@ export const ordinationService = {
     if (!isFirebaseConfigured) {
       const list = getLocalOrdinations();
       const item = { id: `ord-${Date.now()}`, ...newReg };
-      list.unshift(item);
+      list.push(item);
       saveLocalOrdinations(list);
       return item;
     }
