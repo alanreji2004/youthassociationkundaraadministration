@@ -39,7 +39,7 @@ const EventDetails = () => {
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [showAddDocModal, setShowAddDocModal] = useState(false);
 
-  const [eventForm, setEventForm] = useState({ name: "", startDate: "", endDate: "", description: "", remarks: "", status: "Active" });
+  const [eventForm, setEventForm] = useState({ name: "", startDate: "", endDate: "", description: "", remarks: "", status: "Active", routePage: "" });
   const [incomeForm, setIncomeForm] = useState({ receiptNumber: "", date: "", category: "Event Collection", source: "", description: "", amount: "", remarks: "" });
   const [expenseForm, setExpenseForm] = useState({ paymentNumber: "", date: "", category: "Program Expenses", paidTo: "", description: "", amount: "", remarks: "" });
   const [noteForm, setNoteForm] = useState({ content: "" });
@@ -160,7 +160,8 @@ const EventDetails = () => {
       endDate: eventItem.endDate,
       description: eventItem.description,
       remarks: eventItem.remarks || "",
-      status: eventItem.status
+      status: eventItem.status,
+      routePage: eventItem.routePage || ""
     });
     setShowEditModal(true);
     setShowActionsMenu(false);
@@ -445,6 +446,19 @@ const EventDetails = () => {
               <span className={styles.metaLabel}>Created By:</span>
               <span className={styles.metaValue}>{eventItem.createdBy || "System"}</span>
             </div>
+            {eventItem.routePage && (
+              <div className={styles.metaRow} style={{ marginTop: "8px" }}>
+                <span className={styles.metaLabel}></span>
+                <span className={styles.metaValue}>
+                  <Link
+                    to={`/${eventItem.routePage}`}
+                    className={styles.viewEventPageBtn}
+                  >
+                    View Event Page
+                  </Link>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -841,8 +855,6 @@ const EventDetails = () => {
               </table>
             </div>
           )}
-
-
         </div>
       </div>
 
@@ -915,6 +927,16 @@ const EventDetails = () => {
                     value={eventForm.remarks}
                     onChange={(e) => setEventForm({ ...eventForm, remarks: e.target.value })}
                     rows={2}
+                  />
+                </div>
+
+                <div className={`${styles.fg} ${styles.fgFull}`}>
+                  <label>Route Page</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. easter-2026 (leave blank for no route page)"
+                    value={eventForm.routePage || ""}
+                    onChange={(e) => setEventForm({ ...eventForm, routePage: e.target.value })}
                   />
                 </div>
               </div>

@@ -728,6 +728,7 @@ export const financeService = {
             description: eventData.description.trim(),
             status: eventData.status || "Active",
             remarks: eventData.remarks ? eventData.remarks.trim() : "",
+            routePage: eventData.routePage ? eventData.routePage.replace(/^\/+/, "").trim() : "",
             createdBy: creator,
             createdAt: new Date().toISOString(),
             isDeleted: false
@@ -765,6 +766,7 @@ export const financeService = {
           description: eventData.description.trim(),
           status: eventData.status || "Active",
           remarks: eventData.remarks ? eventData.remarks.trim() : "",
+          routePage: eventData.routePage ? eventData.routePage.replace(/^\/+/, "").trim() : "",
           createdBy: creator,
           createdAt: new Date().toISOString(),
           isDeleted: false
@@ -809,7 +811,8 @@ export const financeService = {
             endDate: updatedFields.endDate,
             description: updatedFields.description.trim(),
             status: updatedFields.status,
-            remarks: updatedFields.remarks ? updatedFields.remarks.trim() : ""
+            remarks: updatedFields.remarks ? updatedFields.remarks.trim() : "",
+            routePage: updatedFields.routePage ? updatedFields.routePage.replace(/^\/+/, "").trim() : ""
           };
           saveLocalData(LOCAL_EVENTS_KEY, events);
 
@@ -856,7 +859,8 @@ export const financeService = {
           endDate: updatedFields.endDate,
           description: updatedFields.description.trim(),
           status: updatedFields.status,
-          remarks: updatedFields.remarks ? updatedFields.remarks.trim() : ""
+          remarks: updatedFields.remarks ? updatedFields.remarks.trim() : "",
+          routePage: updatedFields.routePage ? updatedFields.routePage.replace(/^\/+/, "").trim() : ""
         };
         transaction.update(ref, newVal);
 

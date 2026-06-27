@@ -23,7 +23,8 @@ const EventsModule = () => {
     endDate: new Date().toISOString().split("T")[0],
     description: "",
     remarks: "",
-    status: "Active"
+    status: "Active",
+    routePage: ""
   });
 
   useEffect(() => {
@@ -252,6 +253,16 @@ const EventsModule = () => {
                     value={form.remarks}
                     onChange={(e) => setForm({ ...form, remarks: e.target.value })}
                     rows={2}
+                  />
+                </div>
+
+                <div className={`${styles.fg} ${styles.fgFull}`}>
+                  <label>Route Page</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. easter-2026 (leave blank for no route page)"
+                    value={form.routePage || ""}
+                    onChange={(e) => setForm({ ...form, routePage: e.target.value })}
                   />
                 </div>
               </div>
