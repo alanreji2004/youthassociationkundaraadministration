@@ -8,8 +8,7 @@ import {
   FiDatabase, 
   FiAlertTriangle, 
   FiX,
-  FiCalendar,
-  FiCheckSquare
+  FiCalendar
 } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "./Toast";
@@ -125,16 +124,6 @@ const Layout = () => {
             >
               <FiUsers size={18} />
               <span>Membership</span>
-            </NavLink>
-            <NavLink 
-              to="/ordination" 
-              className={({ isActive }) => 
-                isActive ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem
-              }
-              onClick={closeSidebar}
-            >
-              <FiCheckSquare size={18} />
-              <span>Ordination</span>
             </NavLink>
             <NavLink 
               to="/financial-accounts" 

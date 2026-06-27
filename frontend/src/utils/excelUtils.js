@@ -239,3 +239,24 @@ export const parseImportExcel = (file) => {
     reader.readAsArrayBuffer(file);
   });
 };
+
+export const exportOrdinationsToExcel = (registrations) => {
+  const data = registrations.map((reg) => ({
+    "Name": reg.name,
+    "Phone Number": reg.phone
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  ws["!cols"] = [
+    { wch: 25 },
+    { wch: 18 }
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Ordination Paid Attendees");
+
+  const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(blob, "Ordination_Paid_Attendees.xlsx");
+};

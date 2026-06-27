@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { 
   FiPlus, 
   FiSearch, 
@@ -7,7 +8,8 @@ import {
   FiUsers, 
   FiCheckCircle, 
   FiClock, 
-  FiCreditCard 
+  FiCreditCard,
+  FiUserCheck
 } from "react-icons/fi";
 import { ordinationService } from "../services/ordinationService";
 import { useToast } from "../components/Toast";
@@ -203,6 +205,10 @@ const Ordination = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        <Link to="/check-in" className={styles.checkInLinkBtn}>
+          <FiUserCheck size={18} />
+          <span>Check-In Terminal</span>
+        </Link>
         <button onClick={handleOpenAddModal} className={styles.addBtn}>
           <FiPlus size={18} />
           <span>Add Attendee</span>

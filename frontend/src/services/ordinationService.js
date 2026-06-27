@@ -60,6 +60,7 @@ export const ordinationService = {
       name: data.name.trim(),
       phone: data.phone.trim(),
       paid: !!data.paid,
+      checkInStatus: data.checkInStatus || "Pending",
       createdAt: new Date().toISOString()
     };
 
@@ -79,7 +80,8 @@ export const ordinationService = {
     const updatedFields = {
       name: data.name.trim(),
       phone: data.phone.trim(),
-      paid: !!data.paid
+      paid: !!data.paid,
+      checkInStatus: data.checkInStatus || "Pending"
     };
 
     if (!isFirebaseConfigured) {
