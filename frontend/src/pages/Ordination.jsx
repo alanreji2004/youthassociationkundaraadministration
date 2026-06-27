@@ -207,7 +207,7 @@ const Ordination = () => {
         </div>
         <Link to="/check-in" className={styles.checkInLinkBtn}>
           <FiUserCheck size={18} />
-          <span>Check-In Terminal</span>
+          <span>Check-In</span>
         </Link>
         <button onClick={handleOpenAddModal} className={styles.addBtn}>
           <FiPlus size={18} />

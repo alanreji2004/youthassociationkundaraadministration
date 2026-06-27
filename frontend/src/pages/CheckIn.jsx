@@ -113,7 +113,7 @@ const CheckIn = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Event Check-In Terminal</h1>
+        <h1 className={styles.title}>Event Check-In</h1>
         <p className={styles.subtitle}>
           Track event arrivals, check in attendees who completed payment, and manage guest passes.
         </p>
