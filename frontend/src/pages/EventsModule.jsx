@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { FiPlus, FiCalendar, FiX, FiCheckSquare } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { FiPlus, FiCalendar, FiX } from "react-icons/fi";
 import { financeService } from "../services/financeService";
 import { useToast } from "../components/Toast";
 import styles from "./EventsModule.module.css";
@@ -115,16 +115,10 @@ const EventsModule = () => {
             Independent balance tracking worksheets, registry surplus analyses, and audit logs for events.
           </p>
         </div>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-          <Link to="/ordination" className={styles.ordinationLinkBtn}>
-            <FiCheckSquare size={16} />
-            <span>Ordination Register</span>
-          </Link>
-          <button onClick={() => setShowAddModal(true)} className={styles.addBtn}>
-            <FiPlus />
-            <span>New Event</span>
-          </button>
-        </div>
+        <button onClick={() => setShowAddModal(true)} className={styles.addBtn}>
+          <FiPlus />
+          <span>New Event</span>
+        </button>
       </div>
 
       <div className={styles.filterBar}>
