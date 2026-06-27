@@ -39,14 +39,15 @@ const AppRoutes = () => {
         <Route path="membership/edit/:id" element={<EditMember />} />
         <Route path="membership/edit" element={<EditMember />} />
         
+        <Route path="events" element={<EventsModule />} />
+        <Route path="events/:eventId" element={<EventDetails />} />
+        
         <Route path="financial-accounts" element={<FinancialAccounts />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<FinancialDashboard />} />
           <Route path="cash-book" element={<CashBook />} />
           <Route path="receipts" element={<ReceiptsModule />} />
           <Route path="payments" element={<PaymentsModule />} />
-          <Route path="events" element={<EventsModule />} />
-          <Route path="events/:eventId" element={<EventDetails />} />
           <Route path="reports" element={<ReportsModule />} />
           <Route path="fixed-deposits" element={<FixedDepositsDashboard />} />
           <Route path="fixed-deposits/new" element={<AddFixedDeposit />} />

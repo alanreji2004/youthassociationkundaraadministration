@@ -136,9 +136,11 @@ const Layout = () => {
               <span>Accounts</span>
             </NavLink>
             <NavLink 
-              to="/financial-accounts/events" 
+              to="/events" 
               className={({ isActive }) => 
-                isActive ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem
+                isActive || window.location.pathname.startsWith("/events")
+                  ? `${styles.navItem} ${styles.navItemActive}` 
+                  : styles.navItem
               }
               onClick={closeSidebar}
             >

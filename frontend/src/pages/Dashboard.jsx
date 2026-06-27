@@ -97,7 +97,7 @@ const Dashboard = () => {
               Parish events, surplus analysis, income and expense worksheets
             </span>
           </div>
-          <Link to="/financial-accounts/events" className={styles.cardLink}>
+          <Link to="/events" className={styles.cardLink}>
             <span>Manage events</span>
             <FiArrowRight size={14} />
           </Link>

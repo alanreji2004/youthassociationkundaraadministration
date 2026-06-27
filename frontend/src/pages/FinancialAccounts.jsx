@@ -4,7 +4,6 @@ import {
   FiBook, 
   FiArrowDownLeft, 
   FiArrowUpRight, 
-  FiCalendar, 
   FiFileText, 
   FiDatabase,
   FiSettings
@@ -65,18 +64,7 @@ const FinancialAccounts = () => {
             <span>Payments</span>
           </NavLink>
           
-          <NavLink
-            to="events"
-            className={({ isActive }) => 
-              isActive || location.pathname.includes("/events/")
-                ? `${styles.tabLink} ${styles.tabActive}` 
-                : styles.tabLink
-            }
-          >
-            <FiCalendar size={16} />
-            <span>Events</span>
-          </NavLink>
-          
+
           <NavLink
             to="reports"
             className={({ isActive }) => 
